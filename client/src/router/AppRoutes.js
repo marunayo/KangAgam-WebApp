@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
 import { ProtectedRoutes, AdminRoute } from './ProtectedRoutes'; 
@@ -16,6 +16,14 @@ import ManageWordsPage from '../pages/admin/ManageWordsPage';
 import ManageAdminsPage from '../pages/admin/ManageAdminsPage';
 import StatisticsPage from '../pages/admin/StatisticsPage';
 import ManageLearnersPage from '../pages/admin/ManageLearnersPage';
+import ManageCultureTopicsPage from '../pages/admin/ManageCultureTopicsPage';
+import ManageCultureEntriesPage from '../pages/admin/ManageCultureEntriesPage';
+
+// ✅ PERBAIKAN: Memperbaiki path import untuk halaman user
+import CultureTopicsPage from '../pages/CultureTopicsPage';
+import CultureEntriesPage from '../pages/CultureEntriesPage';
+import CultureEntryDetailPage from '../pages/CultureEntryDetailPage';
+
 
 const NotFoundPage = () => (
     <div className="flex items-center justify-center min-h-screen">
@@ -32,19 +40,19 @@ const AnimatedRoutes = () => {
                 <Route path="/" element={<OnboardingPage />} />
                 <Route path="/admin/login" element={<AdminLoginPage />} />
 
-                {/* --- PERBAIKAN STRUKTUR DIMULAI DI SINI --- */}
-
-                {/* Rute User Terproteksi (Hanya untuk role 'user') */}
+                {/* Rute User Terproteksi */}
                 <Route element={<ProtectedRoutes />}>
                     <Route element={<UserLayout />}>
                         <Route path="/home" element={<HomePage />} />
                         <Route path="/topik/:topicId" element={<KosakataPage />} />
                         <Route path="/quiz/:topicId" element={<QuizPage />} />
+                        <Route path="/kamus-budaya" element={<CultureTopicsPage />} />
+                        <Route path="/kamus-budaya/:topicId" element={<CultureEntriesPage />} />
+                        <Route path="/kamus-budaya/:topicId/entry/:entryId" element={<CultureEntryDetailPage />} />
                     </Route>
                 </Route>
 
-                {/* Rute Admin (Hanya untuk role 'admin' dan 'superadmin') */}
-                {/* Ini sekarang berada di level yang sama dengan ProtectedRoutes, tidak lagi di dalamnya */}
+                {/* Rute Admin */}
                 <Route path="/admin" element={<AdminRoute />}>
                     <Route element={<AdminLayout />}>
                         <Route index element={<AdminDashboard />} />
@@ -54,10 +62,10 @@ const AnimatedRoutes = () => {
                         <Route path="manage-admins" element={<ManageAdminsPage />} />
                         <Route path="statistics" element={<StatisticsPage />} />
                         <Route path="manage-learners" element={<ManageLearnersPage />} />
+                        <Route path="manage-culture-topics" element={<ManageCultureTopicsPage />} />
+                        <Route path="manage-culture-topics/:topicId/entries" element={<ManageCultureEntriesPage />} /> 
                     </Route>
                 </Route>
-                
-                {/* --- PERBAIKAN STRUKTUR SELESAI --- */}
                 
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>

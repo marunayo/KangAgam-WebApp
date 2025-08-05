@@ -17,7 +17,7 @@ export const createCultureEntry = async (req, res) => {
         const { title, description } = JSON.parse(req.body.entryData);
 
         const imageFile = files.entryImage ? files.entryImage[0] : null;
-        const videoFile = files.entryVideo ? files.entryVideo[0] : null;
+        const videoFile = files.entryVideo ? files.entryVideo[0] : null;
 
         if (!imageFile || !videoFile || !title || !description) {
             throw new Error("Data tidak lengkap. Judul, deskripsi, gambar, dan video harus diisi.");
@@ -29,8 +29,8 @@ export const createCultureEntry = async (req, res) => {
         const newEntry = await CultureEntry.create({
             title,
             description,
-            imagePath: imageFile.path,
-            videoUrl: videoFile.path,
+            imagePath: imageFile.path.replace('public/', '').replace('public\\', ''),
+            videoUrl: videoFile.path.replace('public/', '').replace('public\\', ''),
             cultureTopic: cultureTopicId
         });
 

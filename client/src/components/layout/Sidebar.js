@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-// ✅ 1. Impor motion dan useTheme
 import { motion } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -15,7 +14,10 @@ const ChartIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w
 const LogoutIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>;
 const UserCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
 
-// ✅ 2. Komponen Theme Switcher baru
+// ✅ Ikon baru untuk Kamus Budaya
+const MuseumIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10v11h16V10" /></svg>;
+
+// Komponen Theme Switcher
 const SunIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>;
 const MoonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>;
 const SunsetIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 10V3M15.24 12.24l4.95-4.95M10 21h4M3.5 13.5h17M12 17.5c-3.866 0-7-1.567-7-3.5s3.134-3.5 7-3.5 7 1.567 7 3.5-3.134 3.5-7 3.5z" /></svg>;
@@ -79,6 +81,10 @@ const Sidebar = () => {
                     <NavLink to="/admin/manage-topics" className={({ isActive }) => isActive ? activeLinkClasses : navLinkClasses} title="Kelola Topik">
                         <BookIcon />
                     </NavLink>
+                    {/* ✅ Tautan baru untuk Kamus Budaya */}
+                    <NavLink to="/admin/manage-culture-topics" className={({ isActive }) => isActive ? activeLinkClasses : navLinkClasses} title="Kamus Budaya">
+                        <MuseumIcon />
+                    </NavLink>
                     <NavLink to="/admin/manage-admins" className={({ isActive }) => isActive ? activeLinkClasses : navLinkClasses} title="Kelola Admin">
                         <UsersIcon />
                     </NavLink>
@@ -92,7 +98,6 @@ const Sidebar = () => {
             </div>
             
             <div className="flex flex-col items-center gap-4">
-                {/* ✅ 3. Gunakan komponen switcher yang baru */}
                 <AdminThemeSwitcher />
                 <button onClick={handleLogout} className="p-3 rounded-lg text-red-500 hover:bg-red-500/10" title="Logout">
                     <LogoutIcon />
