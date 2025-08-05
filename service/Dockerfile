@@ -1,7 +1,7 @@
 # service/Dockerfile (Versi Perbaikan)
 
 FROM node:18-alpine
-ENV NODE_ENV production
+ENV NODE_ENV=production
 WORKDIR /app
 
 # Instalasi dependensi tetap sama

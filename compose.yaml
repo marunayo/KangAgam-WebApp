@@ -1,14 +1,27 @@
+# docker-compose.yml
+
+# The 'version' tag is optional in recent versions of Docker Compose 
+# but can be useful for clarity.
+version: "3.8"
+
 services:
+  # 'service', 'client', and 'database' must all be at the same 
+  # indentation level, directly under the 'services' key.
+  
   service:
     build: ./service
     container_name: service-api
     ports:
       - "5000:5000"
     volumes:
+      # This volume mount looks correct for Azure App Service.
       - ${WEBAPP_STORAGE_HOME}/uploads:/app/public/uploads
     environment:
+      # Using the service name 'database' in the connection string is correct.
       - ATLAS_URI=mongodb://database:27017/KangAgam-DB?replicaSet=rs0
     depends_on:
+      # This correctly waits for the 'database' service to be healthy
+      # before starting the 'service' container.
       database:
         condition: service_healthy
 
@@ -16,8 +29,10 @@ services:
     build: ./client
     container_name: client-web
     ports:
+      # Exposing port 3000 and mapping it to port 80 inside the container.
       - "3000:80"
     depends_on:
+      # This ensures the 'service' container starts before the 'client'.
       - service
 
   database:
@@ -26,13 +41,22 @@ services:
     ports:
       - "27017:27017"
     volumes:
+      # Persisting MongoDB data using the provided storage home is correct.
       - ${WEBAPP_STORAGE_HOME}/mongodb_data:/data/db
+      # These mounts are for seeding data and running an initialization script.
       - ./seed:/docker-entrypoint-initdb.d
       - ./init-mongo.sh:/usr/local/bin/init-mongo.sh
+    
+    # CRITICAL: The init-mongo.sh script MUST start the mongod process.
+    # If the script finishes, the container will stop.
+    # The last line of your init-mongo.sh should be something like: exec mongod
     command: ["bash", "/usr/local/bin/init-mongo.sh"]
+    
     healthcheck:
-      test: |
-        mongosh --host database --eval "quit(db.isMaster().ismaster ? 0 : 1)"
+      # CORRECTED: The healthcheck command runs *inside* the 'database' container,
+      # so it should connect to localhost, not the service name 'database'.
+      # The default host for mongosh is localhost, so we can remove '--host'.
+      test: ["CMD", "mongosh", "--eval", "quit(db.isMaster().ismaster ? 0 : 1)"]
       interval: 10s
       timeout: 10s
       retries: 5
