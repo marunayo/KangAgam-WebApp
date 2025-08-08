@@ -3,10 +3,8 @@ import { Link } from 'react-router-dom';
 import { getAllCultureTopics } from '../services/cultureService';
 import LoadingIndicator from '../components/ui/LoadingIndicator';
 import { motion } from 'framer-motion';
-// ✅ 1. Import komponen Pagination
 import Pagination from '../components/ui/Pagination';
 
-// ✅ 2. Tambahkan Ikon Search
 const SearchIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -43,7 +41,6 @@ const cardVariants = {
     },
 };
 
-// ✅ 3. Tentukan jumlah item per halaman
 const TOPICS_PER_PAGE = 8;
 
 const CultureTopicsPage = () => {
@@ -51,7 +48,6 @@ const CultureTopicsPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     
-    // ✅ 4. Tambahkan state untuk pagination dan search
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -70,12 +66,10 @@ const CultureTopicsPage = () => {
         fetchTopics();
     }, []);
 
-    // ✅ 5. Logika untuk memfilter topik
     const filteredTopics = topics.filter(topic =>
         getLocalizedName(topic.name, 'id').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // ✅ 6. Kalkulasi pagination berdasarkan hasil filter
     const indexOfLastItem = currentPage * TOPICS_PER_PAGE;
     const indexOfFirstItem = indexOfLastItem - TOPICS_PER_PAGE;
     const currentTopics = filteredTopics.slice(indexOfFirstItem, indexOfLastItem);
@@ -91,7 +85,6 @@ const CultureTopicsPage = () => {
 
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* ✅ 7. Layout header baru dengan search dan tombol kembali */}
             <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold text-text">Kamus Budaya</h1>
@@ -109,7 +102,7 @@ const CultureTopicsPage = () => {
                         />
                     </div>
                     <Link
-                        to="#"
+                        to="/home"
                         className="bg-background-secondary text-text-secondary font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-200 dark:hover:bg-gray-700 text-sm border border-gray-300 dark:border-gray-600 flex-shrink-0"
                     >
                         Kembali
@@ -131,10 +124,8 @@ const CultureTopicsPage = () => {
                         initial="hidden"
                         animate="visible"
                     >
-                        {/* ✅ 8. Gunakan `currentTopics` untuk di-map */}
                         {currentTopics.map(topic => (
                             <motion.div key={topic._id} variants={cardVariants}>
-                                {/* ✅ 9. Terapkan perbaikan ukuran kartu */}
                                 <Link
                                     to={`/kamus-budaya/${topic._id}`}
                                     className="flex flex-col h-full bg-background-secondary rounded-xl shadow-md overflow-hidden group hover:shadow-lg transition-shadow duration-300"
@@ -156,7 +147,6 @@ const CultureTopicsPage = () => {
                         ))}
                     </motion.div>
 
-                    {/* ✅ 10. Tambahkan komponen Pagination */}
                     <div className="mt-12">
                         <Pagination
                             currentPage={currentPage}
