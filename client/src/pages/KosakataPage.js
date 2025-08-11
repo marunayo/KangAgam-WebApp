@@ -65,6 +65,9 @@ const SearchIcon = () => (
     </svg>
 );
 
+const SortAscIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" /></svg>;
+const SortDescIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" /></svg>;
+
 const ENTRIES_PER_PAGE = 12;
 
 const KosakataPage = () => {
@@ -82,6 +85,7 @@ const KosakataPage = () => {
     const [error, setError] = useState(null);
     const [activeEntry, setActiveEntry] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [sortOrder, setSortOrder] = useState('asc'); // 'asc' atau 'desc'
     const [currentPage, setCurrentPage] = useState(1);
     const [isAudioPlaying, setIsAudioPlaying] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
@@ -115,6 +119,11 @@ const KosakataPage = () => {
 
         fetchData();
     }, [topicId]);
+
+    const toggleSortOrder = () => {
+        setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+        setCurrentPage(1); // Reset ke halaman pertama setelah sorting
+    };
 
     // ✅ FUNGSI BARU: Logika audio closing di-handle di sini
     const handleBackClick = (e) => {
@@ -166,15 +175,27 @@ const KosakataPage = () => {
         return fallback ? fallback.value : 'Judul Topik';
     };
 
-    const filteredEntries = entries.filter(entry => {
-        const vocab = findVocab(entry, i18n.language);
-        return vocab && vocab.vocab.toLowerCase().includes(searchTerm.toLowerCase());
-    });
+    // Filter dan sort entries berdasarkan kosakata dalam bahasa yang aktif
+    const filteredAndSortedEntries = entries
+        .filter(entry => {
+            const vocab = findVocab(entry, i18n.language);
+            return vocab && vocab.vocab.toLowerCase().includes(searchTerm.toLowerCase());
+        })
+        .sort((a, b) => {
+            const vocabA = findVocab(a, i18n.language)?.vocab.toLowerCase() || '';
+            const vocabB = findVocab(b, i18n.language)?.vocab.toLowerCase() || '';
+            
+            if (sortOrder === 'asc') {
+                return vocabA.localeCompare(vocabB);
+            } else {
+                return vocabB.localeCompare(vocabA);
+            }
+        });
 
-    const totalPages = Math.ceil(filteredEntries.length / ENTRIES_PER_PAGE);
+    const totalPages = Math.ceil(filteredAndSortedEntries.length / ENTRIES_PER_PAGE);
     const indexOfLastItem = currentPage * ENTRIES_PER_PAGE;
     const indexOfFirstItem = indexOfLastItem - ENTRIES_PER_PAGE;
-    const paginatedEntries = filteredEntries.slice(indexOfFirstItem, indexOfLastItem);
+    const paginatedEntries = filteredAndSortedEntries.slice(indexOfFirstItem, indexOfLastItem);
     
     const handlePageChange = (pageNumber) => {
         setCurrentPage(pageNumber);
@@ -216,7 +237,7 @@ const KosakataPage = () => {
         audio.play();
     };
 
-    const entriesToDisplay = isDesktop ? filteredEntries : paginatedEntries;
+    const entriesToDisplay = isDesktop ? filteredAndSortedEntries : paginatedEntries;
 
     const isQuizDisabled = !entries || entries.length < 5;
 
@@ -313,17 +334,28 @@ const KosakataPage = () => {
                                 </div>
                             </div>
                             
-                            <div className="relative w-full sm:max-w-xs sm:self-end">
-                                <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                                    <SearchIcon />
-                                </span>
-                                <input
-                                    type="text"
-                                    placeholder="Cari kosakata..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-background-secondary text-text focus:ring-1 focus:ring-primary focus:border-primary shadow-sm"
-                                />
+                            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                                <div className="relative w-full sm:max-w-xs">
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                        <SearchIcon />
+                                    </span>
+                                    <input
+                                        type="text"
+                                        placeholder="Cari kosakata..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-background-secondary text-text focus:ring-1 focus:ring-primary focus:border-primary shadow-sm"
+                                    />
+                                </div>
+                                {/* Sort Button - Desktop & Mobile */}
+                                <button 
+                                    onClick={toggleSortOrder}
+                                    className="bg-gray-500/10 text-text-secondary font-bold px-3 py-2 rounded-lg flex items-center gap-1 hover:bg-gray-500/20 flex-shrink-0 text-sm w-full sm:w-auto justify-center sm:justify-start"
+                                    title={`Urut ${sortOrder === 'asc' ? 'A-Z' : 'Z-A'}`}
+                                >
+                                    {sortOrder === 'asc' ? <SortAscIcon /> : <SortDescIcon />}
+                                    <span>{sortOrder === 'asc' ? 'A-Z' : 'Z-A'}</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -388,7 +420,7 @@ const KosakataPage = () => {
                                             currentPage={currentPage}
                                             totalPages={totalPages}
                                             onPageChange={handlePageChange}
-                                            totalItems={filteredEntries.length}
+                                            totalItems={filteredAndSortedEntries.length}
                                         />
                                     </div>
                                 )}

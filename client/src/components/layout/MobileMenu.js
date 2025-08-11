@@ -1,9 +1,9 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-// ✅ 1. Import NavLink for active styling
 import { useNavigate, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import UserThemeSwitcher from '../ui/UserThemeSwitcher'; // Assuming you might want this in mobile too
+// ✅ 1. Import UserThemeSwitcher
+import UserThemeSwitcher from '../ui/UserThemeSwitcher';
 
 const CloseIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -26,7 +26,6 @@ const MobileMenu = ({ isOpen, onClose }) => {
         i18n.changeLanguage(e.target.value);
     };
     
-    // ✅ 2. Style for active and inactive links in mobile view
     const mobileNavLinkStyles = ({ isActive }) =>
         `block text-lg font-medium py-3 rounded-md px-3 transition-colors duration-200 ${
             isActive 
@@ -60,7 +59,6 @@ const MobileMenu = ({ isOpen, onClose }) => {
                 </div>
 
                 <nav className="p-6 flex-grow space-y-2">
-                    {/* ✅ 3. Replace placeholder links with actual navigation */}
                     <NavLink to="/home" onClick={onClose} className={mobileNavLinkStyles}>
                         Kamus Kosakata
                     </NavLink>
@@ -70,6 +68,12 @@ const MobileMenu = ({ isOpen, onClose }) => {
                 </nav>
                 
                 <div className="p-6 border-t">
+                    {/* ✅ 2. Tambahkan Theme Switcher di sini */}
+                    <div className="flex justify-between items-center mb-6">
+                        <label className="text-sm font-medium text-gray-500">Mode Tampilan</label>
+                        <UserThemeSwitcher />
+                    </div>
+
                     <div className="mb-4">
                         <label htmlFor="bahasa-mobile" className="block text-sm font-medium text-gray-500 mb-2">{t('languageLabel')}</label>
                         <select

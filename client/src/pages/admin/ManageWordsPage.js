@@ -16,6 +16,8 @@ const ITEMS_PER_PAGE = 7;
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
 const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>;
 const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>;
+const SortAscIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" /></svg>;
+const SortDescIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" /></svg>;
 
 const ManageWordsPage = () => {
     const { user } = useAuth();
@@ -25,6 +27,7 @@ const ManageWordsPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [sortOrder, setSortOrder] = useState('asc'); // 'asc' atau 'desc'
     const [currentPage, setCurrentPage] = useState(1);
     const [imageModalUrl, setImageModalUrl] = useState(null);
     const [audioModalEntry, setAudioModalEntry] = useState(null);
@@ -111,19 +114,36 @@ const ManageWordsPage = () => {
         );
     };
 
+    const toggleSortOrder = () => {
+        setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+        setCurrentPage(1); // Reset ke halaman pertama setelah sorting
+    };
+
     const findVocab = (entry, lang) => {
         if (!entry || !entry.entryVocabularies) return 'N/A';
         const vocab = entry.entryVocabularies.find(v => v.language.languageCode === lang);
         return vocab ? vocab.vocab : 'N/A';
     };
 
-    const filteredWords = wordsData.filter(entry =>
-        findVocab(entry, 'id').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filter dan sort words berdasarkan bahasa Indonesia
+    const filteredAndSortedWords = wordsData
+        .filter(entry =>
+            findVocab(entry, 'id').toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .sort((a, b) => {
+            const vocabA = findVocab(a, 'id').toLowerCase();
+            const vocabB = findVocab(b, 'id').toLowerCase();
+            
+            if (sortOrder === 'asc') {
+                return vocabA.localeCompare(vocabB);
+            } else {
+                return vocabB.localeCompare(vocabA);
+            }
+        });
 
     const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
     const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
-    const currentItems = filteredWords.slice(indexOfFirstItem, indexOfLastItem);
+    const currentItems = filteredAndSortedWords.slice(indexOfFirstItem, indexOfLastItem);
 
     const handleSelectAll = () => {
         const allVisibleIds = currentItems.map(item => item._id);
@@ -135,7 +155,7 @@ const ManageWordsPage = () => {
         }
     };
 
-    const totalPages = Math.ceil(filteredWords.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(filteredAndSortedWords.length / ITEMS_PER_PAGE);
     const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
     const emptyRowsCount = Math.max(0, ITEMS_PER_PAGE - currentItems.length);
     const emptyRows = Array(emptyRowsCount).fill(null);
@@ -160,6 +180,15 @@ const ManageWordsPage = () => {
                         <Link to="/admin/manage-topics" className="bg-background-secondary text-text-secondary font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-gray-200 dark:hover:bg-gray-700 flex-grow sm:flex-grow-0 justify-center text-sm border border-gray-300 dark:border-gray-600">
                             <span>Kembali</span>
                         </Link>
+                        {/* Sort Button - Desktop & Mobile */}
+                        <button 
+                            onClick={toggleSortOrder}
+                            className="bg-gray-500/10 text-text-secondary font-bold px-3 py-2 rounded-lg flex items-center gap-1 hover:bg-gray-500/20 flex-shrink-0 text-sm"
+                            title={`Urut ${sortOrder === 'asc' ? 'A-Z' : 'Z-A'}`}
+                        >
+                            {sortOrder === 'asc' ? <SortAscIcon /> : <SortDescIcon />}
+                            <span className="hidden sm:inline">{sortOrder === 'asc' ? 'A-Z' : 'Z-A'}</span>
+                        </button>
                         {selectedWords.length > 0 && (
                              <button onClick={() => setDeleteModalWord({ multi: true })} className="bg-red-500 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-600 flex-grow sm:flex-grow-0 justify-center text-sm">
                                 <TrashIcon />
@@ -182,7 +211,18 @@ const ManageWordsPage = () => {
                                     <input type="checkbox" className="rounded" onChange={handleSelectAll} checked={currentItems.length > 0 && currentItems.every(item => selectedWords.includes(item._id))} />
                                 </th>
                                 <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[5%]">No.</th>
-                                <th className="p-3 px-6 font-bold text-text-secondary">Indonesia</th>
+                                <th className="p-3 px-6 font-bold text-text-secondary">
+                                    <div className="flex items-center gap-2">
+                                        Indonesia
+                                        <button 
+                                            onClick={toggleSortOrder}
+                                            className="sm:hidden p-1 hover:bg-gray-500/10 rounded"
+                                            title={`Urut ${sortOrder === 'asc' ? 'A-Z' : 'Z-A'}`}
+                                        >
+                                            {sortOrder === 'asc' ? <SortAscIcon /> : <SortDescIcon />}
+                                        </button>
+                                    </div>
+                                </th>
                                 <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[20%]">Sunda</th>
                                 <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[20%]">Inggris</th>
                                 <th className="p-3 px-6 font-bold text-text-secondary text-right">Action</th>
@@ -193,7 +233,7 @@ const ManageWordsPage = () => {
                                 <tr style={{ height: `${ITEMS_PER_PAGE * 60}px` }}><td colSpan="6" className="text-center align-middle"><LoadingIndicator /></td></tr>
                             ) : error ? (
                                 <tr style={{ height: `${ITEMS_PER_PAGE * 60}px` }}><td colSpan="6" className="text-center align-middle text-red-500">{error}</td></tr>
-                            ) : filteredWords.length === 0 ? (
+                            ) : filteredAndSortedWords.length === 0 ? (
                                 <tr style={{ height: `${ITEMS_PER_PAGE * 60}px` }}><td colSpan="6" className="text-center align-middle text-text-secondary">Belum ada kosakata di topik ini.</td></tr>
                             ) : (
                                 <>
@@ -228,7 +268,7 @@ const ManageWordsPage = () => {
                     </table>
                 </div>
                 <div className="p-4 border-t border-background">
-                    <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} totalItems={filteredWords.length} />
+                    <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} totalItems={filteredAndSortedWords.length} />
                 </div>
             </div>
             <ImageModal imageUrl={imageModalUrl} onClose={() => setImageModalUrl(null)} />

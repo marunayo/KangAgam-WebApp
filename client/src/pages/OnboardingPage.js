@@ -115,28 +115,34 @@ const OnboardingPage = () => {
     };
 
     return (
-        <div className="bg-[#FFFBEB] min-h-screen flex items-center justify-center p-4 sm:p-8 font-sans">
-            <div className="w-full max-w-6xl mx-auto flex flex-col md:flex-row items-stretch justify-center gap-10 md:gap-20">
-                <div className="flex flex-col w-full max-w-sm text-center md:text-left py-5">
-                    <div>
-                        <img src={logo} alt="Kang Agam Logo" className="w-56 mx-auto md:mx-0" />
-                        <p className="text-gray-700 mt-4">Kamus Daring Audio Bergambar Tiga Bahasa</p>
+        <div className="bg-[#FFFBEB] min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
+            <div className="w-full max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+                
+                {/* Kolom Kiri: Informasi */}
+                <div className="w-full md:w-1/2 max-w-md md:max-w-none text-center md:text-left flex flex-col items-center md:items-start">
+                    <div className="mb-8">
+                        <img src={logo} alt="Kang Agam Logo" className="w-48 sm:w-56 mx-auto md:mx-0" />
+                        <p className="text-gray-700 mt-4 text-base sm:text-lg">Kamus Daring Audio Bergambar Tiga Bahasa</p>
                         <p className="text-sm text-gray-500">Indonesia / Sunda / Inggris</p>
                     </div>
                     
-                    {/* ✅ PERUBAHAN: Menyesuaikan teks Balai Bahasa */}
-                    <div className="flex items-center justify-center md:justify-start gap-4 mt-auto">
-                        <img src={logoBalaiBahasa} alt="Logo Balai Bahasa" className="h-16" />
+                    {/* ✅ 1. Hapus `hidden md:flex` dan ganti dengan `flex` agar selalu tampil */}
+                    {/* Tambahkan `md:mt-auto` agar di desktop posisinya tetap di bawah */}
+                    <div className="flex items-center justify-center md:justify-start gap-3 mt-8 md:mt-auto">
+                        {/* ✅ 2. Perkecil ukuran logo di mobile */}
+                        <img src={logoBalaiBahasa} alt="Logo Balai Bahasa" className="h-12 sm:h-16" />
                         <div className="text-left">
-                            <p className="text-lg font-bold text-gray-800 leading-tight">BALAI BAHASA</p>
-                            <p className="text-sm font-semibold text-gray-700 leading-tight">PROVINSI JAWA BARAT</p>
-                            <p className="text-xs text-gray-500 leading-tight mt-1">BADAN PENGEMBANGAN DAN PEMBINAAN BAHASA</p>
-                            <p className="text-xs text-gray-500 leading-tight">Kementerian Pendidikan Dasar dan Menengah</p>
+                            {/* ✅ 3. Perkecil ukuran teks di mobile */}
+                            <p className="text-base sm:text-lg font-bold text-gray-800 leading-tight">BALAI BAHASA</p>
+                            <p className="text-xs sm:text-sm font-semibold text-gray-700 leading-tight">PROVINSI JAWA BARAT</p>
+                            <p className="text-[10px] sm:text-xs text-gray-500 leading-tight mt-1">BADAN PENGEMBANGAN DAN PEMBINAAN BAHASA</p>
                         </div>
                     </div>
                 </div>
-                <div className="bg-white p-8 sm:p-10 rounded-2xl shadow-lg w-full max-w-md">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-3">Data Diri</h2>
+
+                {/* Kolom Kanan: Form */}
+                <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg w-full max-w-md mt-8 md:mt-0">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Data Diri</h2>
                     {errors.general && <p className="text-red-500 text-sm mb-4">{errors.general}</p>}
                     <div className="bg-[#FFEFE3] text-[#D96F43] text-sm p-3 rounded-lg flex items-center gap-3 mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
@@ -144,7 +150,7 @@ const OnboardingPage = () => {
                         </svg>
                         <span>Isi terlebih dahulu data diri dibawah ini</span>
                     </div>
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label htmlFor="namaLengkap" className="block text-sm font-medium text-gray-600 mb-1">Nama Lengkap</label>
                             <input type="text" name="namaLengkap" value={formData.namaLengkap} onChange={handleChange} className={`w-full px-4 py-2.5 border rounded-lg ${errors.namaLengkap ? 'border-red-500' : 'border-gray-300'}`} />
@@ -160,9 +166,6 @@ const OnboardingPage = () => {
                                 className={`w-full px-4 py-2.5 border rounded-lg ${errors.nomorTelepon ? 'border-red-500' : 'border-gray-300'}`} 
                                 maxLength="15"
                             />
-                            {formData.nomorTelepon.length > 0 && formData.nomorTelepon.length < 10 && !errors.nomorTelepon && (
-                                <p className="text-gray-500 text-xs mt-1">Minimal 10 digit.</p>
-                            )}
                             {errors.nomorTelepon && <p className="text-red-500 text-xs mt-1">{errors.nomorTelepon}</p>}
                         </div>
                         <div>
@@ -174,7 +177,7 @@ const OnboardingPage = () => {
                                 onChange={handleCityChange}
                                 options={cityOptions}
                                 isLoading={isLoadingCities}
-                                placeholder="Cari dan pilih kota/kabupaten..."
+                                placeholder="Cari dan pilih..."
                                 isClearable
                                 menuPortalTarget={document.body}
                                 styles={{
@@ -193,7 +196,7 @@ const OnboardingPage = () => {
                             />
                             {errors.asalDomisili && <p className="text-red-500 text-xs mt-1">{errors.asalDomisili}</p>}
                         </div>
-                        <button type="submit" disabled={isSubmitting} className="w-full bg-[#8DA2FB] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#788DE5] transition-colors">
+                        <button type="submit" disabled={isSubmitting} className="w-full bg-[#8DA2FB] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#788DE5] transition-colors disabled:opacity-70">
                             {isSubmitting ? 'Memproses...' : 'Masuk'}
                         </button>
                     </form>
