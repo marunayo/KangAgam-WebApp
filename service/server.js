@@ -20,6 +20,8 @@ import locationRouter from './src/routes/LocationRoutes.js';
 import settingRouter from './src/routes/SettingRoutes.js';
 import cultureEntryRouter from './src/routes/CultureEntryRoutes.js'; // Impor rute entri budaya
 import cultureTopicRouter from './src/routes/CultureTopicRoutes.js'; // Impor rute topik budaya
+import connectDB from './src/config/db.js';
+import errorHandler from './src/middlewares/ErrorHandler.js';
 
 // Konfigurasi untuk mendapatkan __dirname di ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -38,7 +40,6 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
-app.use(express.json())
 
 // Tambahkan middleware untuk parsing JSON dan URL-encoded
 app.use(express.json());
@@ -49,12 +50,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 const uri = process.env.ATLAS_URI;
-mongoose.connect(uri);
-const connection = mongoose.connection;
-connection.once('open', () => {
-    console.log("MongoDB database connection established successfully");
-    console.log(`Connected to database: '${connection.db.databaseName}'`);
-});
+connectDB();
 
 // --- PENDAFTARAN RUTE ---
 // Rute untuk entri sudah ditangani di dalam topicsRouter, jadi tidak perlu didaftarkan di sini.
@@ -69,6 +65,8 @@ app.use('/api/settings', settingRouter);
 app.use('/api/culture-topics', cultureTopicRouter); // Rute untuk topik budaya
 app.use('/api/culture-topics/:cultureTopicId/entries', cultureEntryRouter);
 
+// Middleware untuk menangani error
+app.use(errorHandler);
 
 const options = {
   definition: {
