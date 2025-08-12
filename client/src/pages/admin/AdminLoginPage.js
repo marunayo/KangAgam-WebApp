@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import adminService from '../../services/adminService';
 
 const logo = '/assets/images/logo-kang-agam.png';
+const logoBalaiBahasa = '/assets/images/logo/tut-wuri-handayani.svg';
 
 const AdminLoginPage = () => {
     const navigate = useNavigate();
@@ -25,10 +26,9 @@ const AdminLoginPage = () => {
         }
     };
 
-    // ✅ PERBAIKAN: Menambahkan validasi format email
     const validateForm = () => {
         const newErrors = {};
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Pola email sederhana
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (!formData.adminEmail.trim()) {
             newErrors.adminEmail = 'Email wajib diisi.';
@@ -64,45 +64,73 @@ const AdminLoginPage = () => {
     };
 
     return (
-        <div className="bg-[#EBF0FF] min-h-screen flex items-center justify-center p-4 sm:p-8 font-sans">
-            <div className="w-full max-w-6xl mx-auto flex flex-col md:flex-row items-stretch justify-center gap-10 md:gap-20">
+        <div className="bg-[#F0F4FF] min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 font-sans">
+            <div className="w-full max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
                 
-                <div className="flex flex-col w-full max-w-sm text-center md:text-left py-5">
-                    <div>
-                        <img src={logo} alt="Kang Agam Logo" className="w-56 mx-auto md:mx-0" />
-                        <p className="text-gray-700 mt-4">Kamus Daring Audio Bergambar Tiga Bahasa</p>
-                        <p className="text-sm text-gray-500">Panel Khusus Administrator</p>
+                {/* Kolom Kiri: Informasi */}
+                <div className="w-full md:w-1/2 max-w-md md:max-w-none text-center md:text-left flex flex-col items-center md:items-start">
+                    <div className="mb-8">
+                        <img src={logo} alt="Kang Agam Logo" className="w-48 sm:w-56 mx-auto md:mx-0" />
+                        <p className="text-gray-700 mt-4 text-base sm:text-lg">Kamus Daring Audio Bergambar Tiga Bahasa</p>
+                        <p className="text-sm text-gray-600">Panel Khusus Administrator</p>
                     </div>
-                    <p className="text-xs text-gray-500 mt-auto">Balai Bahasa Provinsi Jawa Barat</p>
+                    
+                    <div className="flex items-center justify-center md:justify-start gap-3 mt-8 md:mt-auto">
+                        <img src={logoBalaiBahasa} alt="Logo Balai Bahasa" className="h-12 sm:h-16" />
+                        <div className="text-left">
+                            <p className="text-base sm:text-lg font-bold text-gray-800 leading-tight">BALAI BAHASA</p>
+                            <p className="text-xs sm:text-sm font-semibold text-gray-700 leading-tight">PROVINSI JAWA BARAT</p>
+                            <p className="text-[10px] sm:text-xs text-gray-500 leading-tight mt-1">BADAN PENGEMBANGAN DAN PEMBINAAN BAHASA</p>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="bg-white p-8 sm:p-10 rounded-2xl shadow-lg w-full max-w-md">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-3">Login Admin</h2>
+                {/* Kolom Kanan: Form */}
+                <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-lg w-full max-w-md mt-8 md:mt-0">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Login Admin</h2>
                     {errors.general && <p className="text-red-500 text-sm mb-4">{errors.general}</p>}
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    
+                    <div className="bg-[#E8F0FF] text-[#4169E1] text-sm p-3 rounded-lg flex items-center gap-3 mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                        </svg>
+                        <span>Masukkan kredensial admin yang valid</span>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label htmlFor="adminEmail" className="block text-sm font-medium text-gray-600 mb-1">Email</label>
                             <input 
                                 type="email" 
                                 name="adminEmail" 
+                                id="adminEmail"
                                 value={formData.adminEmail} 
                                 onChange={handleChange} 
-                                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-300 ${errors.adminEmail ? 'border-red-500' : 'border-gray-300'}`} 
+                                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-300 focus:outline-none ${errors.adminEmail ? 'border-red-500' : 'border-gray-300'}`} 
+                                placeholder="admin@example.com"
                             />
                             {errors.adminEmail && <p className="text-red-500 text-xs mt-1">{errors.adminEmail}</p>}
                         </div>
+                        
                         <div>
                             <label htmlFor="adminPassword" className="block text-sm font-medium text-gray-600 mb-1">Password</label>
                             <input 
                                 type="password" 
                                 name="adminPassword" 
+                                id="adminPassword"
                                 value={formData.adminPassword} 
                                 onChange={handleChange} 
-                                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-300 ${errors.adminPassword ? 'border-red-500' : 'border-gray-300'}`} 
+                                className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-300 focus:outline-none ${errors.adminPassword ? 'border-red-500' : 'border-gray-300'}`} 
+                                placeholder="••••••••"
                             />
                             {errors.adminPassword && <p className="text-red-500 text-xs mt-1">{errors.adminPassword}</p>}
                         </div>
-                        <button type="submit" disabled={isSubmitting} className="w-full bg-[#5270FD] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#425AD9] disabled:opacity-50 transition-colors">
+                        
+                        <button 
+                            type="submit" 
+                            disabled={isSubmitting} 
+                            className="w-full bg-[#4169E1] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#3B5CE0] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                        >
                             {isSubmitting ? 'Memproses...' : 'Login'}
                         </button>
                     </form>

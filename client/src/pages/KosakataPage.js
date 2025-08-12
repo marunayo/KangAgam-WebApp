@@ -13,6 +13,9 @@ import Pagination from '../components/ui/Pagination';
 import { getEntriesByTopicId } from '../services/entryService';
 import { getTopicById } from '../services/topicService';
 
+// ✅ Import komponen NotFound untuk error handling
+import NotFoundPage from '../components/NotFoundPage';
+
 // Hook untuk mendeteksi ukuran layar
 const useMediaQuery = (query) => {
     const [matches, setMatches] = useState(window.matchMedia(query).matches);
@@ -89,12 +92,19 @@ const KosakataPage = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [isAudioPlaying, setIsAudioPlaying] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
+    
+    // ✅ TAMBAHAN: State untuk mendeteksi apakah topik tidak ditemukan
+    const [isTopicNotFound, setIsTopicNotFound] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
+                setError(null);
+                setIsTopicNotFound(false);
+                
                 const minDelay = new Promise(resolve => setTimeout(resolve, 1000));
+                
                 const [topicData, entriesData] = await Promise.all([
                     getTopicById(topicId),
                     getEntriesByTopicId(topicId),
@@ -107,11 +117,26 @@ const KosakataPage = () => {
                 if (entriesData.entries && entriesData.entries.length > 0) {
                     setActiveEntry(entriesData.entries[0]);
                 }
-                setError(null);
                 
             } catch (err) {
-                setError("Gagal memuat data dari server.");
-                console.error(err);
+                console.error('Error fetching data:', err);
+                
+                // ✅ PERBAIKAN: Cek apakah error adalah 404 (topik tidak ditemukan)
+                if (err.response && err.response.status === 404) {
+                    setIsTopicNotFound(true);
+                } else if (err.response && err.response.status >= 400 && err.response.status < 500) {
+                    // Client error lainnya (400, 401, 403, dll)
+                    setError("Terjadi kesalahan dalam permintaan data.");
+                } else if (err.response && err.response.status >= 500) {
+                    // Server error (500, 502, dll)
+                    setError("Server sedang mengalami gangguan. Silakan coba lagi nanti.");
+                } else if (err.code === 'NETWORK_ERROR' || !err.response) {
+                    // Network error atau tidak ada response
+                    setError("Tidak dapat terhubung ke server. Periksa koneksi internet Anda.");
+                } else {
+                    // Error umum lainnya
+                    setError("Terjadi kesalahan yang tidak diketahui.");
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -241,8 +266,14 @@ const KosakataPage = () => {
 
     const isQuizDisabled = !entries || entries.length < 5;
 
+    // ✅ PERBAIKAN: Jika loading, tampilkan loading indicator
     if (isLoading) {
         return <LoadingIndicator />;
+    }
+
+    // ✅ PERBAIKAN: Jika topik tidak ditemukan (404), tampilkan halaman NotFound
+    if (isTopicNotFound) {
+        return <NotFoundPage />;
     }
 
     const DetailPanel = () => {
@@ -362,6 +393,7 @@ const KosakataPage = () => {
                 </div>
                 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 mt-8">
+                    {/* ✅ PERBAIKAN: Tampilkan error hanya jika ada error dan bukan 404 */}
                     {error && <p className="text-center text-red-500">{error}</p>}
 
                     {!error && !isLoading && entries.length === 0 && (
