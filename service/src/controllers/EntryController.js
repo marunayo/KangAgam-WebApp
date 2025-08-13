@@ -2,7 +2,7 @@ import Entry from '../models/EntryModel.js';
 import Topic from '../models/TopicModel.js';
 import Vocabulary from '../models/VocabularyModel.js';
 import Language from '../models/LanguageModel.js';
-import { cleanupUploadedFiles } from '../utils/fileUtils.js';
+import { cleanupUploadedFiles } from '../utils/FileUtils.js';
 import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
