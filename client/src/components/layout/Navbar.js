@@ -36,9 +36,9 @@ const Navbar = ({ onMenuToggle, isMenuOpen, totalUniqueVisitors }) => {
                         <NavLink to="/home">
                             <img src={logo} alt="Kang Agam Logo" className="h-9 sm:h-10 w-auto" />
                         </NavLink>
-                        <span className="text-sm text-text-secondary font-medium">
+                        {/* <span className="text-sm text-text-secondary font-medium">
                             {t('totalVisitors', { count: totalUniqueVisitors })}
-                        </span>
+                        </span> */}
                     </div>
 
                     <nav className="hidden sm:flex items-center gap-2">

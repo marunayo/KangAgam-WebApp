@@ -342,7 +342,7 @@ const QuizPage = () => {
                                 </motion.button>
                                 
                                 <div className="flex justify-center items-center gap-4">
-                                    <p className="font-bold text-text">Nilai Kamu</p>
+                                    <p className="font-bold text-text">Nilai kamu: </p>
                                     <div className="bg-secondary/20 text-secondary font-bold px-4 py-2 rounded-lg">
                                         Benar: {score}
                                     </div>
