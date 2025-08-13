@@ -14,23 +14,32 @@ export const createCultureEntry = async (req, res) => {
     const files = req.files;
     try {
         const { cultureTopicId } = req.params;
-        const { title, description } = JSON.parse(req.body.entryData);
+        // Perubahan 1: Ambil juga `videoUrl` dari body
+        const { title, description, videoUrl } = JSON.parse(req.body.entryData);
 
         const imageFile = files.entryImage ? files.entryImage[0] : null;
-        const videoFile = files.entryVideo ? files.entryVideo[0] : null;
+        const videoFile = files.entryVideo ? files.entryVideo[0] : null;
 
-        if (!imageFile || !videoFile || !title || !description) {
-            throw new Error("Data tidak lengkap. Judul, deskripsi, gambar, dan video harus diisi.");
+        // Perubahan 2: Validasi baru yang lebih fleksibel
+        // Memastikan judul, deskripsi, dan gambar ada.
+        // Lalu memastikan SALAH SATU dari unggahan video (videoFile) ATAU link video (videoUrl) ada.
+        if (!title || !description || !imageFile || (!videoFile && !videoUrl)) {
+            throw new Error("Data tidak lengkap. Judul, deskripsi, gambar, dan salah satu dari unggahan video atau URL video harus diisi.");
         }
 
         const topic = await CultureTopic.findById(cultureTopicId);
         if (!topic) throw new Error("Topik budaya tidak ditemukan.");
 
+        // Perubahan 3: Tentukan path video atau URL
+        const videoPathOrUrl = videoFile
+            ? videoFile.path.replace('public/', '').replace('public\\', '') // Jika ada file, gunakan path-nya
+            : videoUrl; // Jika tidak, gunakan URL dari body
+
         const newEntry = await CultureEntry.create({
             title,
             description,
             imagePath: imageFile.path.replace('public/', '').replace('public\\', ''),
-            videoUrl: videoFile.path.replace('public/', '').replace('public\\', ''),
+            videoUrl: videoPathOrUrl, // Gunakan variabel yang sudah ditentukan
             cultureTopic: cultureTopicId
         });
 
