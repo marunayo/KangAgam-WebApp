@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { React, useEffect, useParams} from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
 import { ProtectedRoutes, AdminRoute } from './ProtectedRoutes'; 
@@ -19,17 +19,26 @@ import ManageLearnersPage from '../pages/admin/ManageLearnersPage';
 import ManageCultureTopicsPage from '../pages/admin/ManageCultureTopicsPage';
 import ManageCultureEntriesPage from '../pages/admin/ManageCultureEntriesPage';
 
-// ✅ PERBAIKAN: Memperbaiki path import untuk halaman user
+// ✅ Import halaman user
 import CultureTopicsPage from '../pages/CultureTopicsPage';
 import CultureEntriesPage from '../pages/CultureEntriesPage';
 import CultureEntryDetailPage from '../pages/CultureEntryDetailPage';
 
+// ✅ Import komponen 404 dan route guard
+import NotFoundPage from '../components/NotFoundPage';
+import TopicRouteGuard from '../components/guards/TopicRouteGuard';
 
-const NotFoundPage = () => (
-    <div className="flex items-center justify-center min-h-screen">
-        <h1 className="text-3xl font-bold">404 - Halaman Tidak Ditemukan</h1>
-    </div>
-);
+// ✅ Route guard untuk entry ID (jika diperlukan)
+const EntryRouteGuard = ({ children }) => {
+    const { entryId } = useParams();
+    const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
+    
+    if (entryId && !isValidObjectId(entryId)) {
+        return <NotFoundPage />;
+    }
+    
+    return children;
+};
 
 const AnimatedRoutes = () => {
     const location = useLocation();
@@ -44,11 +53,46 @@ const AnimatedRoutes = () => {
                 <Route element={<ProtectedRoutes />}>
                     <Route element={<UserLayout />}>
                         <Route path="/home" element={<HomePage />} />
-                        <Route path="/topik/:topicId" element={<KosakataPage />} />
-                        <Route path="/quiz/:topicId" element={<QuizPage />} />
+                        
+                        {/* ✅ Protected topic routes with validation */}
+                        <Route 
+                            path="/topik/:topicId" 
+                            element={
+                                <TopicRouteGuard>
+                                    <KosakataPage />
+                                </TopicRouteGuard>
+                            } 
+                        />
+                        <Route 
+                            path="/quiz/:topicId" 
+                            element={
+                                <TopicRouteGuard>
+                                    <QuizPage />
+                                </TopicRouteGuard>
+                            } 
+                        />
+                        
                         <Route path="/kamus-budaya" element={<CultureTopicsPage />} />
-                        <Route path="/kamus-budaya/:topicId" element={<CultureEntriesPage />} />
-                        <Route path="/kamus-budaya/:topicId/entry/:entryId" element={<CultureEntryDetailPage />} />
+                        
+                        {/* ✅ Protected culture routes with validation */}
+                        <Route 
+                            path="/kamus-budaya/:topicId" 
+                            element={
+                                <TopicRouteGuard>
+                                    <CultureEntriesPage />
+                                </TopicRouteGuard>
+                            } 
+                        />
+                        <Route 
+                            path="/kamus-budaya/:topicId/entry/:entryId" 
+                            element={
+                                <TopicRouteGuard>
+                                    <EntryRouteGuard>
+                                        <CultureEntryDetailPage />
+                                    </EntryRouteGuard>
+                                </TopicRouteGuard>
+                            } 
+                        />
                     </Route>
                 </Route>
 
@@ -58,15 +102,35 @@ const AnimatedRoutes = () => {
                         <Route index element={<AdminDashboard />} />
                         <Route path="dashboard" element={<AdminDashboard />} />
                         <Route path="manage-topics" element={<ManageTopicsPage />} />
-                        <Route path="manage-topics/:topicId" element={<ManageWordsPage />} />
+                        
+                        {/* ✅ Protected admin topic routes with validation */}
+                        <Route 
+                            path="manage-topics/:topicId" 
+                            element={
+                                <TopicRouteGuard>
+                                    <ManageWordsPage />
+                                </TopicRouteGuard>
+                            } 
+                        />
+                        
                         <Route path="manage-admins" element={<ManageAdminsPage />} />
                         <Route path="statistics" element={<StatisticsPage />} />
                         <Route path="manage-learners" element={<ManageLearnersPage />} />
                         <Route path="manage-culture-topics" element={<ManageCultureTopicsPage />} />
-                        <Route path="manage-culture-topics/:topicId/entries" element={<ManageCultureEntriesPage />} /> 
+                        
+                        {/* ✅ Protected admin culture routes with validation */}
+                        <Route 
+                            path="manage-culture-topics/:topicId/entries" 
+                            element={
+                                <TopicRouteGuard>
+                                    <ManageCultureEntriesPage />
+                                </TopicRouteGuard>
+                            } 
+                        />
                     </Route>
                 </Route>
                 
+                {/* ✅ 404 Route */}
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>
         </AnimatePresence>
