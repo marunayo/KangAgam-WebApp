@@ -2,7 +2,7 @@ import { React, useEffect, useParams} from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
-import { ProtectedRoutes, AdminRoute } from './ProtectedRoutes'; 
+import { ProtectedRoutes, AdminRoute, OnboardingGuard, AdminLoginGuard } from './ProtectedRoutes'; 
 import UserLayout from '../components/layout/UserLayout';
 import AdminLayout from '../components/layout/AdminLayout';
 import OnboardingPage from '../pages/OnboardingPage';
@@ -45,9 +45,25 @@ const AnimatedRoutes = () => {
     return (
         <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
-                {/* Rute Publik */}
-                <Route path="/" element={<OnboardingPage />} />
-                <Route path="/admin/login" element={<AdminLoginPage />} />
+                {/* ✅ Protected Onboarding - mencegah user yang sudah login kembali ke onboarding */}
+                <Route 
+                    path="/" 
+                    element={
+                        <OnboardingGuard>
+                            <OnboardingPage />
+                        </OnboardingGuard>
+                    } 
+                />
+                
+                {/* ✅ Protected Admin Login - mencegah admin yang sudah login kembali ke login */}
+                <Route 
+                    path="/admin/login" 
+                    element={
+                        <AdminLoginGuard>
+                            <AdminLoginPage />
+                        </AdminLoginGuard>
+                    } 
+                />
 
                 {/* Rute User Terproteksi */}
                 <Route element={<ProtectedRoutes />}>
