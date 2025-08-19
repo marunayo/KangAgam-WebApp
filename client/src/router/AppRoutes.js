@@ -1,5 +1,5 @@
-import { React, useEffect, useParams} from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useLocation, useParams } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
 import { ProtectedRoutes, AdminRoute, OnboardingGuard, AdminLoginGuard } from './ProtectedRoutes'; 
@@ -30,8 +30,13 @@ import TopicRouteGuard from '../components/guards/TopicRouteGuard';
 
 // ✅ Route guard untuk entry ID (jika diperlukan)
 const EntryRouteGuard = ({ children }) => {
-    const { entryId } = useParams();
-    const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
+    const params = useParams();
+    const entryId = params.entryId;
+    
+    const isValidObjectId = (id) => {
+        if (!id) return false;
+        return /^[0-9a-fA-F]{24}$/.test(id);
+    };
     
     if (entryId && !isValidObjectId(entryId)) {
         return <NotFoundPage />;
@@ -42,6 +47,21 @@ const EntryRouteGuard = ({ children }) => {
 
 const AnimatedRoutes = () => {
     const location = useLocation();
+    
+    // Optional: Add page title updates based on route
+    useEffect(() => {
+        const titles = {
+            '/': 'Selamat Datang',
+            '/home': 'Beranda',
+            '/kamus-budaya': 'Kamus Budaya',
+            '/admin': 'Admin Dashboard',
+            '/admin/login': 'Admin Login'
+        };
+        
+        const currentTitle = titles[location.pathname] || 'Aplikasi Budaya';
+        document.title = currentTitle;
+    }, [location.pathname]);
+    
     return (
         <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
@@ -151,14 +171,14 @@ const AnimatedRoutes = () => {
             </Routes>
         </AnimatePresence>
     );
-}
+};
 
 const AppRoutes = () => {
-  return (
-    <BrowserRouter>
-      <AnimatedRoutes />
-    </BrowserRouter>
-  );
+    return (
+        <BrowserRouter>
+            <AnimatedRoutes />
+        </BrowserRouter>
+    );
 };
 
 export default AppRoutes;
