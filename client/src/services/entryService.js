@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = '/api';
 
 // Fungsi ini publik, tidak perlu token
 export const getEntriesByTopicId = async (topicId) => {

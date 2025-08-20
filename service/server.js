@@ -51,6 +51,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Daftarkan middleware untuk menyajikan file statis dari folder 'public'
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 
 const uri = process.env.ATLAS_URI;

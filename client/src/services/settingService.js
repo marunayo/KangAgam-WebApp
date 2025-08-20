@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/settings';
+const API_URL = '/api/settings';
 
 /**
  * Mengambil pengaturan aplikasi dari server.

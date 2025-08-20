@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/learners';
+const API_URL = '/api/learners';
 
 /**
  * Mengambil semua data pengguna (learner) dari server.

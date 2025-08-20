@@ -2,12 +2,13 @@
   "name": "kangagam-webapp",
   "version": "1.0.0",
   "description": "Kamus Bergambar Tiga Bahasa (Indonesia, Sunda, dan Inggris)",
-  "main": "index.js",
+  "main": "proxy-server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "client": "npm start --prefix client",
     "service": "npm start --prefix service",
-    "dev": "concurrently \"npm run client\" \"npm run service\""
+    "dev": "concurrently \"npm run client\" \"npm run service\"",
+    "start": "node proxy-server.js"
   },
   "keywords": [],
   "author": "",

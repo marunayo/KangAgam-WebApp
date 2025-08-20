@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL_TOPICS = 'http://localhost:5000/api/culture-topics';
+const API_URL_TOPICS = '/api/culture-topics';
 
 // =================================
 //      FUNGSI UNTUK TOPIC BUDAYA

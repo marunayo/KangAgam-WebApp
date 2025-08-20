@@ -243,7 +243,7 @@ const KosakataPage = () => {
             audioRef.current.pause();
         }
 
-        const audio = new Audio(`http://localhost:5000${audioUrl.replace(/\\/g, '/')}`);
+        const audio = new Audio(`/public${audioUrl.replace(/\\/g, '/')}`);
         audioRef.current = audio;
         setIsAudioPlaying(true);
 
@@ -292,7 +292,7 @@ const KosakataPage = () => {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    src={`http://localhost:5000${activeEntry.entryImagePath.replace(/\\/g, '/')}`} 
+                                    src={`/public${activeEntry.entryImagePath.replace(/\\/g, '/')}`} 
                                     alt="Gambar kosakata" 
                                     className="w-full h-full object-cover" 
                                 />
@@ -430,7 +430,7 @@ const KosakataPage = () => {
                                                     <motion.div key={entry._id} variants={cardVariants}>
                                                         <KosakataCard 
                                                             content={currentVocab.vocab}
-                                                            imageUrl={`http://localhost:5000${entry.entryImagePath.replace(/\\/g, '/')}`}
+                                                            imageUrl={`/public${entry.entryImagePath.replace(/\\/g, '/')}`}
                                                             isActive={activeEntry && activeEntry._id === entry._id}
                                                             isPlaying={isAudioPlaying && activeEntry?._id === entry._id}
                                                             isAnyAudioPlaying={isAudioPlaying}

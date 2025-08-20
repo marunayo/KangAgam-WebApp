@@ -24,6 +24,10 @@ app.use('/api-docs', createProxyMiddleware({
   changeOrigin: true,
 }));
 
+app.use('/public', createProxyMiddleware({
+  target: `http://localhost:${SERVICE_PORT}`,
+  changeOrigin: true,
+}));
 
 // 3. Proxy untuk Client (React App)
 // SEMUA request LAINNYA akan diarahkan ke aplikasi client.
