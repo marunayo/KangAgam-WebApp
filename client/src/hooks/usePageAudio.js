@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 
 // Path ke file audio Anda
-const OPENING_SOUND_PATH = '/assets/audio/opening.wav';
-const CLOSING_SOUND_PATH = '/assets/audio/closing.wav';
+const OPENING_SOUND_PATH = '/assets/audio/system/opening.wav';
+const CLOSING_SOUND_PATH = '/assets/audio/system/closing-1.wav';
 
 /**
  * Custom Hook untuk memutar audio navigasi halaman (opening/closing).
