@@ -25,7 +25,7 @@ const OnboardingPage = () => {
     useEffect(() => {
         const fetchCities = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/locations/cities'); 
+                const response = await axios.get('/api/locations/cities'); 
                 const cityData = response.data.map(city => ({
                     value: city.name,
                     label: city.name,
@@ -100,7 +100,7 @@ const OnboardingPage = () => {
                 learnerPhone: formData.nomorTelepon,
                 learnerCity: selectedCity.value, 
             };
-            const response = await axios.post('http://localhost:5000/api/learners', learnerData);
+            const response = await axios.post('/api/learners', learnerData);
             
             const userData = { ...response.data.data, role: 'user' };
             login(userData);

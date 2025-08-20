@@ -17,6 +17,8 @@
     "nodemon": "^3.1.10"
   },
   "dependencies": {
+    "express": "^5.1.0",
+    "http-proxy-middleware": "^3.0.5",
     "react-router-dom": "^7.6.3",
     "react-scripts": "^5.0.1"
   }

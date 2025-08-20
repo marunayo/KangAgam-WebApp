@@ -18,8 +18,8 @@ import visitorLogRouter from './src/routes/VisitorLogRoutes.js';
 import dashboardRouter from './src/routes/DashboardRoutes.js';
 import locationRouter from './src/routes/LocationRoutes.js';
 import settingRouter from './src/routes/SettingRoutes.js';
-import cultureEntryRouter from './src/routes/CultureEntryRoutes.js'; // Impor rute entri budaya
-import cultureTopicRouter from './src/routes/CultureTopicRoutes.js'; // Impor rute topik budaya
+import cultureEntryRouter from './src/routes/CultureEntryRoutes.js';
+import cultureTopicRouter from './src/routes/CultureTopicRoutes.js';
 import connectDB from './src/config/db.js';
 import errorHandler from './src/middlewares/ErrorHandler.js';
 
@@ -30,15 +30,19 @@ const __dirname = path.dirname(__filename);
 // Express dan Socket.IO setup
 const app = express();
 const server = http.createServer(app);
+
+// --- PERUBAHAN 1: Konfigurasi CORS untuk Socket.IO ---
+// Menghapus origin yang spesifik agar bisa menerima koneksi dari mana saja (termasuk ngrok)
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "*", // Mengizinkan semua origin
     methods: ["GET", "POST", "PUT", "DELETE"]
   }
 });
 
 const PORT = process.env.PORT || 5000;
 
+// Menggunakan cors untuk Express (ini sudah benar, mengizinkan semua)
 app.use(cors());
 
 // Tambahkan middleware untuk parsing JSON dan URL-encoded
@@ -53,7 +57,6 @@ const uri = process.env.ATLAS_URI;
 connectDB();
 
 // --- PENDAFTARAN RUTE ---
-// Rute untuk entri sudah ditangani di dalam topicsRouter, jadi tidak perlu didaftarkan di sini.
 app.use('/api/topics', topicsRouter);
 app.use('/api/languages', languageRouter);
 app.use('/api/learners', learnerRouter);
@@ -62,7 +65,7 @@ app.use('/api/visitor-logs', visitorLogRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/locations', locationRouter);
 app.use('/api/settings', settingRouter);
-app.use('/api/culture-topics', cultureTopicRouter); // Rute untuk topik budaya
+app.use('/api/culture-topics', cultureTopicRouter);
 app.use('/api/culture-topics/:cultureTopicId/entries', cultureEntryRouter);
 
 // Middleware untuk menangani error
@@ -83,7 +86,7 @@ const options = {
 const spacs = swaggerJSDoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(spacs));
 
-// Jalankan server
-server.listen(PORT, () => {
-    console.log(`Service is running on port ${PORT}`);
+// --- PERUBAHAN 2: Menjalankan server agar bisa diakses dari luar ---
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ Service is running on port ${PORT} and is accessible externally.`);
 });

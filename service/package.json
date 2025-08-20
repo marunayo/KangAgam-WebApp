@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev": "concurrently \"mongod --dbpath \\\"C:\\Program Files\\MongoDB\\Server\\7.0\\data\\\" --replSet rs0\" \"nodemon server.js\""
+    "dev": "concurrently \"mongod --dbpath ./data --replSet rs0\" \"nodemon server.js\""
   },
   "keywords": [],
   "author": "",
