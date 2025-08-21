@@ -25,6 +25,7 @@ ChartJS.register(
   Legend
 );
 
+// Helper function to extract topic name
 const getTopicName = (nameData) => {
     if (!nameData) return 'N/A';
     if (typeof nameData === 'string') return nameData;
@@ -36,6 +37,7 @@ const getTopicName = (nameData) => {
     return 'N/A';
 };
 
+// Helper function to create chart gradient
 const createGradient = (ctx, area, colorStart, colorEnd) => {
     const gradient = ctx.createLinearGradient(0, area.bottom, 0, area.top);
     gradient.addColorStop(0, colorStart);
@@ -50,26 +52,18 @@ const StatisticsPage = () => {
     const uniqueVisitorChartRef = useRef(null);
     const cityChartRef = useRef(null);
 
-    const [stats, setStats] = useState({
-        totalVisitors: 0,
-        totalUniqueVisitors: 0,
-        visitorDistribution: [],
-        uniqueVisitorDistribution: [],
-        favoriteTopic: {},
-        topicDistribution: [],
-        cityDistribution: [],
-        mostfrequentcity: {}
-    });
+    const [visitorStats, setVisitorStats] = useState({ total: 0, distribution: [] });
+    const [topicStats, setTopicStats] = useState({ favorite: {}, distribution: [] });
+    const [uniqueVisitorStats, setUniqueVisitorStats] = useState({ total: 0, distribution: [] });
+    const [cityStats, setCityStats] = useState({ mostFrequent: {}, distribution: [] });
 
-    // ✅ FIX: Separate filters for each card
     const [filters, setFilters] = useState({
         visitorsPeriod: 'monthly',
-        uniqueVisitorsPeriod: 'monthly', // Separate filter for unique visitors
+        uniqueVisitorsPeriod: 'monthly',
         topicPeriod: 'monthly',
         cityPeriod: 'monthly',
     });
 
-    // ✅ FIX: Separate loading states for each card
     const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [loadingStates, setLoadingStates] = useState({
         visitors: false,
@@ -79,151 +73,130 @@ const StatisticsPage = () => {
     });
     const [error, setError] = useState(null);
 
-    // ✅ FIX: Function to update specific loading state
-    const setSpecificLoading = (cardType, isLoading) => {
-        setLoadingStates(prev => ({
-            ...prev,
-            [cardType]: isLoading
-        }));
-    };
-
-    const fetchData = useCallback(async (changedFilter = null) => {
+    const fetchCardData = useCallback(async (cardType, currentFilters) => {
         if (!user?.token) return;
-        
-        // ✅ FIX: Set loading only for affected card
-        if (changedFilter) {
-            switch (changedFilter) {
-                case 'visitorsPeriod':
-                    setSpecificLoading('visitors', true);
+        setLoadingStates(prev => ({ ...prev, [cardType]: true }));
+        try {
+            const data = await getDashboardData(currentFilters, user.token);
+            switch (cardType) {
+                case 'visitors':
+                    setVisitorStats({ total: data.totalVisitors, distribution: data.visitorDistribution });
                     break;
-                case 'uniqueVisitorsPeriod':
-                    setSpecificLoading('uniqueVisitors', true);
+                case 'uniqueVisitors':
+                    setUniqueVisitorStats({ total: data.totalUniqueVisitors, distribution: data.uniqueVisitorDistribution });
                     break;
-                case 'topicPeriod':
-                    setSpecificLoading('topics', true);
+                case 'topics':
+                    setTopicStats({ favorite: data.favoriteTopic, distribution: data.topicDistribution });
                     break;
-                case 'cityPeriod':
-                    setSpecificLoading('cities', true);
+                case 'cities':
+                    setCityStats({ mostFrequent: data.mostfrequentcity, distribution: data.cityDistribution });
                     break;
                 default:
-                    // Loading all cards only during initial load
-                    setLoadingStates({
-                        visitors: true,
-                        uniqueVisitors: true,
-                        topics: true,
-                        cities: true,
-                    });
+                    break;
             }
-        }
-
-        try {
-            const data = await getDashboardData(filters, user.token);
-            setStats(data);
-            setError(null);
         } catch (err) {
-            setError('Gagal memuat data statistik.');
+            setError(`Gagal memuat data untuk kartu ${cardType}.`);
             console.error(err);
         } finally {
-            setIsInitialLoading(false);
-            // Reset all loading states
-            setLoadingStates({
-                visitors: false,
-                uniqueVisitors: false,
-                topics: false,
-                cities: false,
-            });
+            setLoadingStates(prev => ({ ...prev, [cardType]: false }));
         }
-    }, [user, filters]);
+    }, [user]);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        const fetchInitialData = async () => {
+            if (!user?.token) return;
+            setIsInitialLoading(true);
+            try {
+                const data = await getDashboardData(filters, user.token);
+                setVisitorStats({ total: data.totalVisitors, distribution: data.visitorDistribution });
+                setUniqueVisitorStats({ total: data.totalUniqueVisitors, distribution: data.uniqueVisitorDistribution });
+                setTopicStats({ favorite: data.favoriteTopic, distribution: data.topicDistribution });
+                setCityStats({ mostFrequent: data.mostfrequentcity, distribution: data.cityDistribution });
+                setError(null);
+            } catch (err) {
+                setError('Gagal memuat data statistik awal.');
+                console.error(err);
+            } finally {
+                setIsInitialLoading(false);
+            }
+        };
+        fetchInitialData();
+    }, [user]);
 
-    // ✅ FIX: Handler with tracking which filter changed
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
-        setFilters(prev => ({ ...prev, [name]: value }));
-        
-        // Trigger fetch with information about which filter changed
-        setTimeout(() => {
-            fetchData(name);
-        }, 0);
+        const newFilters = { ...filters, [name]: value };
+        setFilters(newFilters);
+        const cardTypeMap = {
+            visitorsPeriod: 'visitors',
+            uniqueVisitorsPeriod: 'uniqueVisitors',
+            topicPeriod: 'topics',
+            cityPeriod: 'cities',
+        };
+        const cardType = cardTypeMap[name];
+        fetchCardData(cardType, newFilters);
     };
 
-    // Chart data configurations
+    // ✅ PERBAIKAN: Tambahkan pengecekan 'chartArea' sebelum membuat gradien
     const visitorChartData = {
-        labels: stats.visitorDistribution?.map(d => d.label) || [],
+        labels: visitorStats.distribution?.map(d => d.label) || [],
         datasets: [{
             label: 'Total Kunjungan',
-            data: stats.visitorDistribution?.map(d => d.count) || [],
+            data: visitorStats.distribution?.map(d => d.count) || [],
             backgroundColor: (context) => {
                 const { ctx, chartArea } = context.chart;
-                if (!chartArea) return null;
-                const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
-                const colorWithCommas = primaryColor.replace(/ /g, ',');
-                return createGradient(ctx, chartArea, `rgba(${colorWithCommas}, 0.2)`, `rgba(${colorWithCommas}, 0.8)`);
+                if (!chartArea) return 'rgba(124, 58, 237, 0.5)'; // Fallback color
+                return createGradient(ctx, chartArea, '#A78BFA80', '#7C3AED');
             },
-            borderColor: (context) => {
-                const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
-                const colorWithCommas = primaryColor.replace(/ /g, ',');
-                return `rgba(${colorWithCommas}, 1)`;
-            },
+            borderColor: '#7C3AED',
             borderWidth: 1,
             borderRadius: 8,
         }],
     };
 
     const topicChartData = {
-        labels: stats.topicDistribution?.map(d => getTopicName(d.name)) || [],
+        labels: topicStats.distribution?.map(d => getTopicName(d.name)) || [],
         datasets: [{
             label: 'Jumlah Kunjungan',
-            data: stats.topicDistribution?.map(d => d.count) || [],
+            data: topicStats.distribution?.map(d => d.count) || [],
             backgroundColor: (context) => {
                 const { ctx, chartArea } = context.chart;
-                if (!chartArea) return null;
-                const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim();
-                const colorWithCommas = accentColor.replace(/ /g, ',');
-                return createGradient(ctx, chartArea, `rgba(${colorWithCommas}, 0.2)`, `rgba(${colorWithCommas}, 0.8)`);
+                if (!chartArea) return 'rgba(245, 158, 11, 0.5)'; // Fallback color
+                return createGradient(ctx, chartArea, '#FBBF2480', '#F59E0B');
             },
-            borderColor: (context) => {
-                const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim();
-                const colorWithCommas = accentColor.replace(/ /g, ',');
-                return `rgba(${colorWithCommas}, 1)`;
-            },
+            borderColor: '#F59E0B',
             borderWidth: 1,
             borderRadius: 8,
         }],
     };
 
     const uniqueVisitorChartData = {
-        labels: stats.uniqueVisitorDistribution?.map(d => d.label) || [],
+        labels: uniqueVisitorStats.distribution?.map(d => d.label) || [],
         datasets: [{
             label: 'Pengunjung Unik',
-            data: stats.uniqueVisitorDistribution?.map(d => d.count) || [],
+            data: uniqueVisitorStats.distribution?.map(d => d.count) || [],
             backgroundColor: (context) => {
                 const { ctx, chartArea } = context.chart;
-                if (!chartArea) return null;
-                const secondaryColor = '16, 185, 129';
-                return createGradient(ctx, chartArea, `rgba(${secondaryColor}, 0.2)`, `rgba(${secondaryColor}, 0.8)`);
+                if (!chartArea) return 'rgba(5, 150, 105, 0.5)'; // Fallback color
+                return createGradient(ctx, chartArea, '#34D39980', '#059669');
             },
-            borderColor: 'rgb(16, 185, 129)',
+            borderColor: '#059669',
             borderWidth: 1,
             borderRadius: 8,
         }],
     };
 
     const cityChartData = {
-        labels: stats.cityDistribution?.map(d => d.label) || [],
+        labels: cityStats.distribution?.map(d => d.label) || [],
         datasets: [{
             label: 'Jumlah Pengunjung',
-            data: stats.cityDistribution?.map(d => d.count) || [],
+            data: cityStats.distribution?.map(d => d.count) || [],
             backgroundColor: (context) => {
                 const { ctx, chartArea } = context.chart;
-                if (!chartArea) return null;
-                const purpleColor = '168, 85, 247';
-                return createGradient(ctx, chartArea, `rgba(${purpleColor}, 0.2)`, `rgba(${purpleColor}, 0.8)`);
+                if (!chartArea) return 'rgba(236, 72, 153, 0.5)'; // Fallback color
+                return createGradient(ctx, chartArea, '#F472B680', '#EC4899');
             },
-            borderColor: 'rgb(168, 85, 247)',
+            borderColor: '#EC4899',
             borderWidth: 1,
             borderRadius: 8,
         }],
@@ -239,18 +212,21 @@ const StatisticsPage = () => {
         },
     };
 
-    const mostFrequentCityName = stats.cityDistribution && stats.cityDistribution.length > 0
-        ? stats.cityDistribution[0].label
+    const mostFrequentCityName = cityStats.distribution && cityStats.distribution.length > 0
+        ? cityStats.distribution[0].label
         : 'N/A';
 
     if (isInitialLoading) return <div className="flex items-center justify-center h-96"><LoadingIndicator /></div>;
-    if (error) return <p className="text-center text-red-500">{error}</p>;
+    if (error && !visitorStats.distribution) return <p className="text-center text-red-500">{error}</p>;
 
     return (
         <div>
             <PageHeader title="Statistik Pengguna">
                 <ExportControls 
-                    statsData={stats} 
+                    visitorData={visitorStats}
+                    topicData={topicStats}
+                    uniqueVisitorData={uniqueVisitorStats}
+                    cityData={cityStats}
                     filters={filters}
                     visitorChartRef={visitorChartRef}
                     topicChartRef={topicChartRef}
@@ -264,12 +240,7 @@ const StatisticsPage = () => {
                 <div className="bg-background-secondary p-6 rounded-xl shadow-md">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="font-bold text-text">Total Kunjungan</h3>
-                        <select 
-                            name="visitorsPeriod" 
-                            value={filters.visitorsPeriod} 
-                            onChange={handleFilterChange} 
-                            className="bg-background text-text-secondary rounded-lg px-3 py-1 text-sm"
-                        >
+                        <select name="visitorsPeriod" value={filters.visitorsPeriod} onChange={handleFilterChange} className="bg-background text-text-secondary rounded-lg px-3 py-1 text-sm border border-gray-300 dark:border-gray-600">
                             <option value="daily">Harian</option>
                             <option value="weekly">Mingguan</option>
                             <option value="monthly">Bulanan</option>
@@ -280,7 +251,7 @@ const StatisticsPage = () => {
                         <div className="h-72 flex items-center justify-center"><LoadingIndicator /></div>
                     ) : (
                         <>
-                            <p className="text-5xl font-bold text-text">{stats.totalVisitors.toLocaleString('id-ID')}</p>
+                            <p className="text-5xl font-bold text-text">{visitorStats.total.toLocaleString('id-ID')}</p>
                             <div className="mt-4 h-60">
                                 <Bar ref={visitorChartRef} options={chartOptions} data={visitorChartData} />
                             </div>
@@ -292,12 +263,7 @@ const StatisticsPage = () => {
                 <div className="bg-background-secondary p-6 rounded-xl shadow-md">
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="font-bold text-text">Topik Favorit</h3>
-                        <select 
-                            name="topicPeriod" 
-                            value={filters.topicPeriod} 
-                            onChange={handleFilterChange} 
-                            className="bg-background text-text-secondary rounded-lg px-3 py-1 text-sm"
-                        >
+                        <select name="topicPeriod" value={filters.topicPeriod} onChange={handleFilterChange} className="bg-background text-text-secondary rounded-lg px-3 py-1 text-sm border border-gray-300 dark:border-gray-600">
                             <option value="daily">Harian</option>
                             <option value="weekly">Mingguan</option>
                             <option value="monthly">Bulanan</option>
@@ -308,7 +274,7 @@ const StatisticsPage = () => {
                         <div className="h-72 flex items-center justify-center"><LoadingIndicator /></div>
                     ) : (
                         <>
-                            <p className="text-3xl font-bold text-text">{getTopicName(stats.favoriteTopic?.name)}</p>
+                            <p className="text-3xl font-bold text-text">{getTopicName(topicStats.favorite?.name)}</p>
                             <div className="mt-4 h-60">
                                 <Bar ref={topicChartRef} options={chartOptions} data={topicChartData} />
                             </div>
@@ -316,16 +282,11 @@ const StatisticsPage = () => {
                     )}
                 </div>
 
-                {/* ✅ FIXED: Card Pengunjung Unik - Using separate filter */}
+                {/* Card Pengunjung Unik */}
                 <div className="bg-background-secondary p-6 rounded-xl shadow-md">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-text">Pengunjung Unik</h3>
-                        <select 
-                            name="uniqueVisitorsPeriod" 
-                            value={filters.uniqueVisitorsPeriod} 
-                            onChange={handleFilterChange} 
-                            className="bg-background text-text-secondary rounded-lg px-3 py-1 text-sm"
-                        >
+                        <h3 className="font-bold text-text">Total Pengunjung</h3>
+                        <select name="uniqueVisitorsPeriod" value={filters.uniqueVisitorsPeriod} onChange={handleFilterChange} className="bg-background text-text-secondary rounded-lg px-3 py-1 text-sm border border-gray-300 dark:border-gray-600">
                             <option value="daily">Harian</option>
                             <option value="weekly">Mingguan</option>
                             <option value="monthly">Bulanan</option>
@@ -336,7 +297,7 @@ const StatisticsPage = () => {
                         <div className="h-72 flex items-center justify-center"><LoadingIndicator /></div>
                     ) : (
                         <>
-                            <p className="text-5xl font-bold text-text">{stats.totalUniqueVisitors.toLocaleString('id-ID')}</p>
+                            <p className="text-5xl font-bold text-text">{uniqueVisitorStats.total.toLocaleString('id-ID')}</p>
                             <div className="mt-4 h-60">
                                 <Bar ref={uniqueVisitorChartRef} options={chartOptions} data={uniqueVisitorChartData} />
                             </div>
@@ -347,13 +308,8 @@ const StatisticsPage = () => {
                 {/* Card Asal Domisili */}
                 <div className="bg-background-secondary p-6 rounded-xl shadow-md">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-text">Domisili Pengunjung Aktif</h3>
-                        <select 
-                            name="cityPeriod" 
-                            value={filters.cityPeriod} 
-                            onChange={handleFilterChange} 
-                            className="bg-background text-text-secondary rounded-lg px-3 py-1 text-sm"
-                        >
+                        <h3 className="font-bold text-text">Domisili Pengunjung Terbanyak</h3>
+                        <select name="cityPeriod" value={filters.cityPeriod} onChange={handleFilterChange} className="bg-background text-text-secondary rounded-lg px-3 py-1 text-sm border border-gray-300 dark:border-gray-600">
                             <option value="daily">Harian</option>
                             <option value="weekly">Mingguan</option>
                             <option value="monthly">Bulanan</option>

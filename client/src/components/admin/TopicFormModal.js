@@ -7,23 +7,20 @@ const CloseIcon = () => (
     </svg>
 );
 
-// Struktur data untuk satu section topik baru
 const createNewTopicSection = () => ({
-    id: Date.now() + Math.random(), // ID unik untuk key dan manipulasi state
+    id: Date.now() + Math.random(), 
     topicNames: { id: '', su: '', en: '' },
     imageFile: null,
     imagePreview: null,
     status: 'Published',
-    errors: {}, // State error lokal untuk setiap section
+    errors: {},
 });
 
 const TopicFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
-    // State utama sekarang adalah array of topics
     const [topics, setTopics] = useState([createNewTopicSection()]);
 
     useEffect(() => {
         if (isOpen) {
-            // Logika ini hanya relevan untuk mode 'edit' yang mengedit satu topik
             if (mode === 'edit' && initialData) {
                  const names = { id: '', su: '', en: '' };
                  const namesArray = initialData.allTopicNames || initialData.topicName || [];
@@ -41,11 +38,9 @@ const TopicFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
                     errors: {},
                 }]);
             } else {
-                // Reset form untuk mode 'add'
                 setTopics([createNewTopicSection()]);
             }
         } else {
-            // Membersihkan preview URL untuk mencegah memory leak saat modal ditutup
             topics.forEach(topic => {
                 if (topic.imagePreview && topic.imagePreview.startsWith('blob:')) {
                     URL.revokeObjectURL(topic.imagePreview);
@@ -54,34 +49,24 @@ const TopicFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
         }
     }, [isOpen, mode, initialData]);
 
-    const handleAddTopicSection = () => {
-        setTopics(prev => [...prev, createNewTopicSection()]);
-    };
+    const handleAddTopicSection = () => setTopics(prev => [...prev, createNewTopicSection()]);
+    const handleRemoveTopicSection = (topicId) => setTopics(prev => prev.filter(topic => topic.id !== topicId));
 
-    const handleRemoveTopicSection = (topicId) => {
-        setTopics(prev => prev.filter(topic => topic.id !== topicId));
-    };
-
-    // Handler umum untuk mengubah field di section tertentu
     const handleFieldChange = (topicId, field, value, subField = null) => {
         setTopics(prevTopics => 
             prevTopics.map(topic => {
                 if (topic.id === topicId) {
                     const updatedTopic = { ...topic };
+                    const newErrors = { ...topic.errors };
                     if (subField) {
                         updatedTopic[field] = { ...topic[field], [subField]: value };
+                        if (field === 'topicNames' && subField === 'id' && value.trim() !== '') {
+                            delete newErrors.topicNames;
+                        }
                     } else {
                         updatedTopic[field] = value;
                     }
-
-                    // Hapus error untuk field yang sedang diubah
-                    if (updatedTopic.errors[field] || updatedTopic.errors.topicNames) {
-                        const newErrors = { ...updatedTopic.errors };
-                        if (subField === 'id') delete newErrors.topicNames;
-                        else delete newErrors[field];
-                        updatedTopic.errors = newErrors;
-                    }
-                    return updatedTopic;
+                    return { ...updatedTopic, errors: newErrors };
                 }
                 return topic;
             })
@@ -95,7 +80,7 @@ const TopicFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
                 prevTopics.map(topic => {
                     if (topic.id === topicId) {
                         const newErrors = { ...topic.errors };
-                        delete newErrors.imageFile;
+                        delete newErrors.imageFile; 
                         if (topic.imagePreview && topic.imagePreview.startsWith('blob:')) {
                             URL.revokeObjectURL(topic.imagePreview);
                         }
@@ -115,7 +100,6 @@ const TopicFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
                 newErrors.topicNames = 'Nama topik (Indonesia) wajib diisi.';
                 allSectionsAreValid = false;
             }
-            // Validasi gambar hanya untuk mode 'add'
             if (mode === 'add' && !topic.imageFile) {
                 newErrors.imageFile = 'Gambar wajib diunggah.';
                 allSectionsAreValid = false;
@@ -128,34 +112,34 @@ const TopicFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!validateAllTopics()) {
-            return; // Hentikan jika ada section yang tidak valid
+        if (!validateAllTopics()) return;
+
+        // ✅ [PROBLEM-1] Cek jika ada bahasa yang kosong
+        const hasEmptyLanguages = topics.some(topic => !topic.topicNames.su.trim() || !topic.topicNames.en.trim());
+
+        if (hasEmptyLanguages) {
+            // Tampilkan dialog konfirmasi
+            const proceed = window.confirm("Beberapa kolom bahasa (Sunda/Inggris) masih kosong. Tetap lanjutkan?");
+            if (!proceed) {
+                return; // Batalkan submit jika pengguna menekan 'Cancel'
+            }
         }
 
-        // Siapkan array of FormData, satu untuk setiap topik
         const allFormData = topics.map(topic => {
             const formData = new FormData();
             const topicNamesArray = Object.keys(topic.topicNames)
                 .filter(lang => topic.topicNames[lang])
                 .map(lang => ({ lang, value: topic.topicNames[lang] }));
-
             formData.append('topicNames', JSON.stringify(topicNamesArray));
             formData.append('status', topic.status);
-            if (topic.imageFile) {
-                formData.append('topicImage', topic.imageFile);
-            }
-            // Jika mode edit, sertakan ID topik yang diedit
-            if (mode === 'edit') {
-                formData.append('topicId', topic.id);
-            }
+            if (topic.imageFile) formData.append('topicImage', topic.imageFile);
+            if (mode === 'edit') formData.append('topicId', topic.id);
             return formData;
         });
         
-        // Kirim array FormData ke parent component
         onSubmit(allFormData);
     };
 
-    // Render hanya jika modal terbuka dan ada data (untuk mencegah flash aneh)
     const canRender = isOpen && (mode === 'add' || (mode === 'edit' && topics.length > 0));
 
     return (
@@ -176,7 +160,6 @@ const TopicFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
                                 <h2 className="text-xl font-bold text-text">{mode === 'edit' ? 'Edit Topik' : 'Tambah Topik'}</h2>
                                 <button type="button" onClick={onClose} className="p-1 rounded-full hover:bg-background"><CloseIcon /></button>
                             </header>
-
                             <main className="p-4 space-y-6 max-h-[75vh] overflow-y-auto">
                                 {topics.map((topic, index) => (
                                     <div key={topic.id} className="p-4 bg-background rounded-xl border border-gray-200 dark:border-gray-700 space-y-4 relative">
@@ -210,16 +193,32 @@ const TopicFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
                                                 {topic.imagePreview && (
                                                     <div className="mt-2 mb-2"><img src={topic.imagePreview} alt="Pratinjau" className="w-20 h-20 object-cover rounded-lg" /></div>
                                                 )}
-                                                <input type="file" accept="image/*" onChange={(e) => handleImageChange(topic.id, e)} className="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
+                                                <div className="relative">
+                                                    <input 
+                                                        type="file" 
+                                                        accept="image/*" 
+                                                        onChange={(e) => handleImageChange(topic.id, e)}
+                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                        id={`file-input-${topic.id}`}
+                                                    />
+                                                    <div className="flex items-center justify-between w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-text cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                            {topic.imageFile ? topic.imageFile.name : 'Tidak ada berkas yang dipilih'}
+                                                        </span>
+                                                        <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-semibold rounded-full">
+                                                            Pilih berkas
+                                                        </span>
+                                                    </div>
+                                                </div>
                                                 {topic.errors.imageFile && <p className="text-red-500 text-xs mt-1">{topic.errors.imageFile}</p>}
                                             </div>
-                                            <div>
+                                            {/* <div>
                                                 <label className="block text-sm font-medium text-text-secondary mb-1">Status</label>
                                                 <select value={topic.status} onChange={(e) => handleFieldChange(topic.id, 'status', e.target.value)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-text">
                                                     <option value="Published">Published</option>
                                                     <option value="Draft">Draft</option>
                                                 </select>
-                                            </div>
+                                            </div> */}
                                         </div>
                                     </div>
                                 ))}
@@ -232,7 +231,6 @@ const TopicFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
                                     </button>
                                 )}
                             </main>
-
                             <footer className="flex-shrink-0 p-4 bg-background rounded-b-2xl border-t border-background">
                                 <button type="submit" className="w-full bg-primary text-white font-bold py-3 px-4 rounded-lg hover:opacity-90">
                                     {mode === 'edit' ? 'Simpan Perubahan' : `Tambah ${topics.length} Topik`}

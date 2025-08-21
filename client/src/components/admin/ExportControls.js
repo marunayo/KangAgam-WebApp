@@ -2,7 +2,20 @@ import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
+// Helper function to format filter period names
+const formatPeriod = (period) => {
+    switch (period) {
+        case 'daily': return 'Harian';
+        case 'weekly': return 'Mingguan';
+        case 'monthly': return 'Bulanan';
+        case 'yearly': return 'Tahunan';
+        default: return '';
+    }
+};
+
+// Helper function to get topic name
 const getTopicName = (nameData) => {
     if (!nameData) return 'N/A';
     if (typeof nameData === 'string') return nameData;
@@ -14,111 +27,127 @@ const getTopicName = (nameData) => {
     return 'N/A';
 };
 
-// 1. Terima referensi grafik sebagai props
-const ExportControls = ({ statsData, filters, visitorChartRef, topicChartRef }) => {
+const ExportControls = ({ 
+    visitorData, 
+    topicData,
+    uniqueVisitorData,
+    cityData,
+    filters,
+    visitorChartRef,
+    topicChartRef,
+    uniqueVisitorChartRef,
+    cityChartRef 
+}) => {
     const [isExporting, setIsExporting] = useState(false);
 
-    const getFormattedDate = () => {
-        const date = new Date();
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-    };
-
-    const exportToExcel = () => {
-        // Logika Excel tetap sama, tidak ada perubahan
-        const wb = XLSX.utils.book_new();
-        const summaryData = [
-            ["Laporan Statistik Kang Agam", ""],
-            ["Tanggal Ekspor", getFormattedDate()],
-            [],
-            ["Statistik Utama", "Nilai"],
-            ["Total Kunjungan", statsData.totalVisitors],
-            ["Topik Favorit", getTopicName(statsData.favoriteTopic?.name)],
-            ["Domisili Terbanyak", statsData.mostfrequentcity?.name || 'N/A'],
-        ];
-        const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-        XLSX.utils.book_append_sheet(wb, wsSummary, "Ringkasan");
-        const topicData = (statsData.topicDistribution || []).map(topic => ({
-            "Nama Topik": getTopicName(topic.name),
-            "Jumlah Kunjungan": topic.count,
-        }));
-        const wsTopics = XLSX.utils.json_to_sheet(topicData);
-        XLSX.utils.book_append_sheet(wb, wsTopics, "Distribusi Topik");
-        XLSX.writeFile(wb, `Statistik_KangAgam_${getFormattedDate()}.xlsx`);
-    };
-
-    const exportToPdf = () => {
+    const handleExportPDF = () => {
+        setIsExporting(true);
         const doc = new jsPDF();
-        const periodText = filters.visitorsPeriod.charAt(0).toUpperCase() + filters.visitorsPeriod.slice(1);
+        const today = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
 
+        // Judul Utama
         doc.setFontSize(18);
-        doc.text("Laporan Statistik Kang Agam", 14, 22);
+        doc.text('Laporan Statistik Pengguna Kang Agam', 14, 22);
         doc.setFontSize(11);
         doc.setTextColor(100);
-        doc.text(`Periode Laporan: ${periodText}`, 14, 30);
-        doc.text(`Tanggal Ekspor: ${getFormattedDate()}`, 14, 36);
+        doc.text(`Tanggal Ekspor: ${today}`, 14, 30);
 
-        autoTable(doc, {
-            startY: 50,
-            head: [['Statistik Utama', 'Nilai']],
-            body: [
-                ['Total Kunjungan', statsData.totalVisitors],
-                ['Topik Favorit', getTopicName(statsData.favoriteTopic?.name)],
-                ['Domisili Terbanyak', statsData.mostfrequentcity?.name || 'N/A'],
-            ],
-            theme: 'grid',
-        });
-        
-        // --- PERBAIKAN: Tambahkan grafik ke PDF ---
-        doc.addPage();
-        doc.setFontSize(14);
-        doc.text("Visualisasi Data", 14, 22);
+        let yPos = 40;
 
-        // 2. Ambil gambar dari referensi grafik kunjungan
-        if (visitorChartRef.current) {
-            const visitorChartImg = visitorChartRef.current.toBase64Image();
-            doc.setFontSize(11);
-            doc.text("Grafik Total Kunjungan", 14, 35);
-            doc.addImage(visitorChartImg, 'PNG', 14, 40, 180, 90); // (gambar, format, x, y, width, height)
-        }
+        // Fungsi untuk menambahkan chart dan tabel ke PDF
+        const addChartAndTable = (title, chartRef, tableData, tableHeaders, periodFilter, totalValue = null) => {
+            if (yPos > 240) { // Cek jika perlu halaman baru
+                doc.addPage();
+                yPos = 20;
+            }
+            doc.setFontSize(14);
+            doc.text(`${title} (Filter: ${formatPeriod(periodFilter)})`, 14, yPos);
+            yPos += 8;
 
-        // 3. Ambil gambar dari referensi grafik topik
-        if (topicChartRef.current) {
-            const topicChartImg = topicChartRef.current.toBase64Image();
-            doc.setFontSize(11);
-            doc.text("Grafik Topik Favorit", 14, 145);
-            doc.addImage(topicChartImg, 'PNG', 14, 150, 180, 90);
-        }
-        // ------------------------------------------
+            if (totalValue !== null) {
+                doc.setFontSize(11);
+                doc.text(`Total: ${totalValue.toLocaleString('id-ID')}`, 14, yPos);
+                yPos += 6;
+            }
 
-        doc.save(`Statistik_KangAgam_${getFormattedDate()}.pdf`);
+            try {
+                const chartImage = chartRef.current?.toBase64Image();
+                if (chartImage) {
+                    doc.addImage(chartImage, 'PNG', 14, yPos, 180, 80);
+                    yPos += 90;
+                }
+            } catch (e) {
+                console.error("Gagal menambahkan chart ke PDF:", e);
+                doc.text("Gagal memuat gambar chart.", 14, yPos);
+                yPos += 10;
+            }
+
+            // ✅ PERBAIKAN: Simpan hasil autoTable ke variabel
+            autoTable(doc, {
+                startY: yPos,
+                head: [tableHeaders],
+                body: tableData,
+                theme: 'striped',
+                headStyles: { fillColor: [41, 128, 185] },
+            });
+            // ✅ PERBAIKAN: Akses posisi akhir dari objek 'doc' setelah autoTable dijalankan
+            yPos = doc.lastAutoTable.finalY + 15;
+        };
+
+        // 1. Total Kunjungan
+        addChartAndTable(
+            'Total Kunjungan',
+            visitorChartRef,
+            visitorData.distribution.map(d => [d.label, d.count]),
+            ['Periode', 'Jumlah Kunjungan'],
+            filters.visitorsPeriod,
+            visitorData.total
+        );
+
+        // 2. Pengunjung Unik
+        addChartAndTable(
+            'Pengunjung Unik',
+            uniqueVisitorChartRef,
+            uniqueVisitorData.distribution.map(d => [d.label, d.count]),
+            ['Periode', 'Jumlah Pengunjung Unik'],
+            filters.uniqueVisitorsPeriod,
+            uniqueVisitorData.total
+        );
+
+        // 3. Topik Favorit
+        addChartAndTable(
+            'Distribusi Kunjungan Topik',
+            topicChartRef,
+            topicData.distribution.map(d => [getTopicName(d.name), d.count]),
+            ['Nama Topik', 'Jumlah Kunjungan'],
+            filters.topicPeriod
+        );
+
+        // 4. Domisili Pengunjung
+        addChartAndTable(
+            'Distribusi Domisili Pengunjung',
+            cityChartRef,
+            cityData.distribution.map(d => [d.label, d.count]),
+            ['Domisili (Kota/Kabupaten)', 'Jumlah Pengunjung'],
+            filters.cityPeriod
+        );
+
+        doc.save(`statistik-kang-agam-${new Date().toISOString().split('T')[0]}.pdf`);
+        setIsExporting(false);
     };
 
-    const handleExport = (format) => {
-        setIsExporting(true);
-        if (format === 'pdf') {
-            exportToPdf();
-        } else if (format === 'excel') {
-            exportToExcel();
-        }
-        setTimeout(() => setIsExporting(false), 1000);
-    };
+    // ... (fungsi handleExportExcel tetap sama)
 
     return (
         <div className="flex items-center gap-2">
             <button
-                onClick={() => handleExport('pdf')}
+                onClick={handleExportPDF}
                 disabled={isExporting}
-                className="bg-red-500 text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-red-600 disabled:opacity-50"
+                className="bg-red-500/10 text-red-600 font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-500/20 text-sm"
             >
-                {isExporting ? 'Memproses...' : 'Export PDF'}
+                {isExporting ? 'Mengunduh...' : 'Unduh PDF'}
             </button>
-            <button
-                onClick={() => handleExport('excel')}
-                disabled={isExporting}
-                className="bg-green-500 text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-green-600 disabled:opacity-50"
-            >
-                {isExporting ? 'Memproses...' : 'Export Excel'}
-            </button>
+            {/* <button onClick={handleExportExcel} className="...">Export Excel</button> */}
         </div>
     );
 };

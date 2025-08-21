@@ -55,6 +55,9 @@ const SearchIcon = () => (
     </svg>
 );
 
+const SortAscIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" /></svg>;
+const SortDescIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" /></svg>;
+
 const TOPICS_PER_PAGE = 10;
 
 const HomePage = () => {
@@ -68,6 +71,7 @@ const HomePage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [sortOrder, setSortOrder] = useState('asc'); // 'asc' atau 'desc'
     const [currentPage, setCurrentPage] = useState(1);
     const [infoModal, setInfoModal] = useState({ isOpen: false, title: '', message: '' });
     // ✅ 3. STATE UNTUK MENGONTROL MODAL AUDIO
@@ -104,6 +108,11 @@ const HomePage = () => {
         fetchData();
     }, [i18n.language]);
 
+    const toggleSortOrder = () => {
+        setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+        setCurrentPage(1); // Reset ke halaman pertama setelah sorting
+    };
+
     const handleTopicClick = (topic) => {
         if (isAudioPlaying) return;
 
@@ -125,14 +134,26 @@ const HomePage = () => {
         navigate(`/topik/${topic._id}`);
     };
 
-    const filteredTopics = topics.filter(topic =>
-        topic.topicName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filter dan sort topics
+    const filteredAndSortedTopics = topics
+        .filter(topic =>
+            topic.topicName.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .sort((a, b) => {
+            const nameA = a.topicName.toLowerCase();
+            const nameB = b.topicName.toLowerCase();
+            
+            if (sortOrder === 'asc') {
+                return nameA.localeCompare(nameB);
+            } else {
+                return nameB.localeCompare(nameA);
+            }
+        });
 
-    const totalPages = Math.ceil(filteredTopics.length / TOPICS_PER_PAGE);
+    const totalPages = Math.ceil(filteredAndSortedTopics.length / TOPICS_PER_PAGE);
     const indexOfLastItem = currentPage * TOPICS_PER_PAGE;
     const indexOfFirstItem = indexOfLastItem - TOPICS_PER_PAGE;
-    const currentTopics = filteredTopics.slice(indexOfFirstItem, indexOfLastItem);
+    const currentTopics = filteredAndSortedTopics.slice(indexOfFirstItem, indexOfLastItem);
     const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
 
     // Tampilkan loading indicator jika data belum siap, terlepas dari audio
@@ -154,19 +175,30 @@ const HomePage = () => {
             
             <div className="sticky top-0 z-10 bg-background border-b border-gray-200 dark:border-gray-700">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="py-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="py-8 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                         <PageHeader title={t('welcomeMessage')} />
-                        <div className="relative w-full sm:w-auto">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-                                <SearchIcon />
-                            </span>
-                            <input
-                                type="text"
-                                placeholder="Cari topik..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-background-secondary text-text focus:ring-1 focus:ring-primary focus:border-primary"
-                            />
+                        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                            <div className="relative w-full sm:w-auto sm:flex-grow">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <SearchIcon />
+                                </span>
+                                <input
+                                    type="text"
+                                    placeholder="Cari topik..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full sm:w-64 pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-background-secondary text-text focus:ring-1 focus:ring-primary focus:border-primary"
+                                />
+                            </div>
+                            {/* Sort Button - Desktop & Mobile */}
+                            <button 
+                                onClick={toggleSortOrder}
+                                className="bg-gray-500/10 text-text-secondary font-bold px-3 py-2 rounded-lg flex items-center gap-1 hover:bg-gray-500/20 flex-shrink-0 text-sm w-full sm:w-auto justify-center sm:justify-start"
+                                title={`Urut ${sortOrder === 'asc' ? 'A-Z' : 'Z-A'}`}
+                            >
+                                {sortOrder === 'asc' ? <SortAscIcon /> : <SortDescIcon />}
+                                <span>{sortOrder === 'asc' ? 'A-Z' : 'Z-A'}</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -177,7 +209,7 @@ const HomePage = () => {
                     <p className="text-center text-red-500 mt-8">{error}</p>
                 ) : (
                     <>
-                        {!isLoading && filteredTopics.length === 0 ? (
+                        {!isLoading && filteredAndSortedTopics.length === 0 ? (
                             <div className="text-center py-20 flex-grow flex items-center justify-center">
                                 <p className="text-xl text-text-secondary">Topik belum tersedia, ditunggu yah {'>'}.{'<'}</p>
                             </div>
@@ -211,7 +243,7 @@ const HomePage = () => {
                                         currentPage={currentPage}
                                         totalPages={totalPages}
                                         onPageChange={handlePageChange}
-                                        totalItems={filteredTopics.length}
+                                        totalItems={filteredAndSortedTopics.length}
                                     />
                                 </div>
                             </>

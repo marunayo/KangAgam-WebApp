@@ -1,5 +1,5 @@
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import UserThemeSwitcher from '../ui/UserThemeSwitcher';
 
@@ -18,28 +18,43 @@ const Navbar = ({ onMenuToggle, isMenuOpen, totalUniqueVisitors }) => {
     const changeLanguage = (e) => {
         i18n.changeLanguage(e.target.value);
     };
+    
+    // ✅ 2. Style for active and inactive links
+    const navLinkStyles = ({ isActive }) =>
+        `text-sm font-semibold px-3 py-2 rounded-md transition-colors duration-200 ${
+            isActive 
+            ? 'bg-primary/10 text-primary' 
+            : 'text-text-secondary hover:bg-gray-500/10'
+        }`;
+
 
     return (
         <header className="bg-background-secondary border-b border-gray-200 dark:border-gray-700/50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between gap-4 py-4">
                     <div className="flex items-center gap-4">
-                        <Link to="/home">
+                        <NavLink to="/home">
                             <img src={logo} alt="Kang Agam Logo" className="h-9 sm:h-10 w-auto" />
-                        </Link>
-                        {/* ✅ PERUBAHAN: Warna teks dibuat lebih terang untuk kontras yang lebih baik */}
-                        <span className="text-sm text-text-secondary font-medium">
+                        </NavLink>
+                        {/* <span className="text-sm text-text-secondary font-medium">
                             {t('totalVisitors', { count: totalUniqueVisitors })}
-                        </span>
+                        </span> */}
                     </div>
 
-                    <nav className="hidden sm:flex items-center gap-4">
-                        {/* ✅ PERUBAHAN: Menu A dan Menu B dihapus */}
+                    <nav className="hidden sm:flex items-center gap-2">
+                        {/* ✅ 3. Add navigation links */}
+                        <NavLink to="/home" className={navLinkStyles}>
+                            Kamus Kosakata
+                        </NavLink>
+                        {/* <NavLink to="/kamus-budaya" className={navLinkStyles}>
+                            Kamus Budaya
+                        </NavLink> */}
                         
+                        <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2"></div>
+
                         <UserThemeSwitcher />
 
                         <div className="flex items-center">
-                            {/* ✅ PERUBAHAN: Dropdown menggunakan warna yang lebih kontras */}
                             <select
                                 id="bahasa-nav-desktop"
                                 name="bahasa"

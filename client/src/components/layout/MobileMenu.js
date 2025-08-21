@@ -1,9 +1,10 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+// ✅ 1. Import UserThemeSwitcher
+import UserThemeSwitcher from '../ui/UserThemeSwitcher';
 
-// Komponen ikon 'X' untuk tombol tutup
 const CloseIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -16,7 +17,7 @@ const MobileMenu = ({ isOpen, onClose }) => {
     const { t, i18n } = useTranslation();
 
     const handleLogout = () => {
-        onClose(); // Tutup menu dulu
+        onClose();
         logout();
         navigate('/');
     };
@@ -24,22 +25,25 @@ const MobileMenu = ({ isOpen, onClose }) => {
     const changeLanguage = (e) => {
         i18n.changeLanguage(e.target.value);
     };
+    
+    const mobileNavLinkStyles = ({ isActive }) =>
+        `block text-lg font-medium py-3 rounded-md px-3 transition-colors duration-200 ${
+            isActive 
+            ? 'bg-primary/10 text-primary' 
+            : 'text-gray-700 hover:bg-gray-100'
+        }`;
 
-    // 1. Wrapper utama sekarang 'fixed' dan 'inset-0' untuk menutupi seluruh layar.
-    //    Ini memastikan backdrop dan menu tidak akan pernah ikut scroll.
     return (
         <div 
             className={`sm:hidden fixed inset-0 z-40 transition-opacity duration-300
                         ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         >
-            {/* Backdrop (latar belakang gelap) */}
             <div 
                 className="absolute inset-0 bg-black/40"
                 onClick={onClose}
                 aria-hidden="true"
             ></div>
             
-            {/* Panel Menu yang bergeser */}
             <div
                 onClick={(e) => e.stopPropagation()}
                 className={`relative ml-auto h-full w-3/4 max-w-sm bg-white shadow-xl
@@ -47,21 +51,29 @@ const MobileMenu = ({ isOpen, onClose }) => {
                             flex flex-col
                             ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
             >
-                {/* Header Menu dengan tombol tutup */}
-                <div className="flex justify-end p-4 border-b">
+                <div className="flex justify-between items-center p-4 border-b">
+                     <div className="text-gray-700 font-bold">Menu</div>
                     <button onClick={onClose} className="p-2 text-gray-600 hover:text-black" aria-label="Tutup menu">
                         <CloseIcon />
                     </button>
                 </div>
 
-                {/* Konten Menu Utama */}
-                <nav className="p-6 flex-grow">
-                    <Link to="#" onClick={onClose} className="block text-lg font-medium text-gray-700 py-3 hover:text-indigo-600">{t('menuA')}</Link>
-                    <Link to="#" onClick={onClose} className="block text-lg font-medium text-gray-700 py-3 hover:text-indigo-600">{t('menuB')}</Link>
+                <nav className="p-6 flex-grow space-y-2">
+                    <NavLink to="/home" onClick={onClose} className={mobileNavLinkStyles}>
+                        Kamus Kosakata
+                    </NavLink>
+                    <NavLink to="/kamus-budaya" onClick={onClose} className={mobileNavLinkStyles}>
+                        Kamus Budaya
+                    </NavLink>
                 </nav>
                 
-                {/* Footer Menu: Pilihan Bahasa dan Tombol Keluar */}
                 <div className="p-6 border-t">
+                    {/* ✅ 2. Tambahkan Theme Switcher di sini */}
+                    <div className="flex justify-between items-center mb-6">
+                        <label className="text-sm font-medium text-gray-500">Mode Tampilan</label>
+                        <UserThemeSwitcher />
+                    </div>
+
                     <div className="mb-4">
                         <label htmlFor="bahasa-mobile" className="block text-sm font-medium text-gray-500 mb-2">{t('languageLabel')}</label>
                         <select

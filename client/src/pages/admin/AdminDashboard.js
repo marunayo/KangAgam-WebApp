@@ -119,7 +119,7 @@ const AdminDashboard = () => {
             <div className="hidden lg:flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-text">Halo, {user?.adminName || 'Admin'}</h1>
-                    <p className="text-text-secondary">Selamat datang kembali di dashboard Anda.</p>
+                    <p className="text-text-secondary">Selamat datang kembali di dasbor Anda.</p>
                 </div>
             </div>
 

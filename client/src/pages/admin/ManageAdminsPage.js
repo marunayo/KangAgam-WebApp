@@ -159,10 +159,10 @@ const ManageAdminsPage = () => {
                 <table className="w-full text-left">
                     <thead className="bg-slate-50 dark:bg-gray-700/50">
                         <tr>
-                            <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[5%]">#</th>
+                            <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[5%]">No</th>
                             <th className="p-3 px-6 font-bold text-text-secondary">Nama</th>
-                            <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[30%]">E-Mail</th>
-                            <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[15%]">Role</th>
+                            <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[30%]">Posel</th>
+                            <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[15%]">Peran</th>
                             <th className="p-3 px-6 font-bold text-text-secondary text-right">Aksi</th>
                         </tr>
                     </thead>
