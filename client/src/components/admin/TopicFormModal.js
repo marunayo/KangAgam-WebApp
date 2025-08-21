@@ -193,16 +193,32 @@ const TopicFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
                                                 {topic.imagePreview && (
                                                     <div className="mt-2 mb-2"><img src={topic.imagePreview} alt="Pratinjau" className="w-20 h-20 object-cover rounded-lg" /></div>
                                                 )}
-                                                <input type="file" accept="image/*" onChange={(e) => handleImageChange(topic.id, e)} className="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"/>
+                                                <div className="relative">
+                                                    <input 
+                                                        type="file" 
+                                                        accept="image/*" 
+                                                        onChange={(e) => handleImageChange(topic.id, e)}
+                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                        id={`file-input-${topic.id}`}
+                                                    />
+                                                    <div className="flex items-center justify-between w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-text cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                            {topic.imageFile ? topic.imageFile.name : 'Tidak ada berkas yang dipilih'}
+                                                        </span>
+                                                        <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-semibold rounded-full">
+                                                            Pilih berkas
+                                                        </span>
+                                                    </div>
+                                                </div>
                                                 {topic.errors.imageFile && <p className="text-red-500 text-xs mt-1">{topic.errors.imageFile}</p>}
                                             </div>
-                                            <div>
+                                            {/* <div>
                                                 <label className="block text-sm font-medium text-text-secondary mb-1">Status</label>
                                                 <select value={topic.status} onChange={(e) => handleFieldChange(topic.id, 'status', e.target.value)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-text">
                                                     <option value="Published">Published</option>
                                                     <option value="Draft">Draft</option>
                                                 </select>
-                                            </div>
+                                            </div> */}
                                         </div>
                                     </div>
                                 ))}

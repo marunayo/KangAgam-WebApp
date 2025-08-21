@@ -81,10 +81,9 @@ const Sidebar = () => {
                     <NavLink to="/admin/manage-topics" className={({ isActive }) => isActive ? activeLinkClasses : navLinkClasses} title="Kelola Topik">
                         <BookIcon />
                     </NavLink>
-                    {/* ✅ Tautan baru untuk Kamus Budaya */}
-                    <NavLink to="/admin/manage-culture-topics" className={({ isActive }) => isActive ? activeLinkClasses : navLinkClasses} title="Kamus Budaya">
+                    {/* <NavLink to="/admin/manage-culture-topics" className={({ isActive }) => isActive ? activeLinkClasses : navLinkClasses} title="Kamus Budaya">
                         <MuseumIcon />
-                    </NavLink>
+                    </NavLink> */}
                     <NavLink to="/admin/manage-admins" className={({ isActive }) => isActive ? activeLinkClasses : navLinkClasses} title="Kelola Admin">
                         <UsersIcon />
                     </NavLink>

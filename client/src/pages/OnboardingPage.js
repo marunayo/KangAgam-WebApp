@@ -126,16 +126,12 @@ const OnboardingPage = () => {
                         <p className="text-sm text-gray-500">Indonesia / Sunda / Inggris</p>
                     </div>
                     
-                    {/* ✅ 1. Hapus `hidden md:flex` dan ganti dengan `flex` agar selalu tampil */}
-                    {/* Tambahkan `md:mt-auto` agar di desktop posisinya tetap di bawah */}
                     <div className="flex items-center justify-center md:justify-start gap-3 mt-8 md:mt-auto">
-                        {/* ✅ 2. Perkecil ukuran logo di mobile */}
                         <img src={logoBalaiBahasa} alt="Logo Balai Bahasa" className="h-12 sm:h-16" />
                         <div className="text-left">
-                            {/* ✅ 3. Perkecil ukuran teks di mobile */}
-                            <p className="text-base sm:text-lg font-bold text-gray-800 leading-tight">BALAI BAHASA</p>
-                            <p className="text-xs sm:text-sm font-semibold text-gray-700 leading-tight">PROVINSI JAWA BARAT</p>
-                            <p className="text-[10px] sm:text-xs text-gray-500 leading-tight mt-1">BADAN PENGEMBANGAN DAN PEMBINAAN BAHASA</p>
+                            <p className="text-sm sm:text-base font-bold text-gray-800 leading-tight">BALAI BAHASA PROVINSI JAWA BARAT</p>
+                            <p className="text-xs sm:text-sm font-semibold text-gray-700 leading-tight mt-0.5">BADAN PENGEMBANGAN DAN PEMBINAAN BAHASA</p>
+                            <p className="text-[10px] sm:text-xs text-gray-500 leading-tight mt-1">Kementerian Pendidikan Dasar dan Menengah Republik Indonesia</p>
                         </div>
                     </div>
                 </div>

@@ -225,7 +225,7 @@ const ManageWordsPage = () => {
                                 </th>
                                 <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[20%]">Sunda</th>
                                 <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[20%]">Inggris</th>
-                                <th className="p-3 px-6 font-bold text-text-secondary text-right">Action</th>
+                                <th className="p-3 px-6 font-bold text-text-secondary text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -251,7 +251,7 @@ const ManageWordsPage = () => {
                                                     <button onClick={() => setImageModalUrl(`http://localhost:5000${entry.entryImagePath}`)} className="bg-gray-500/10 text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-500/20">Gambar</button>
                                                     <button onClick={() => setAudioModalEntry(entry)} className="bg-gray-500/10 text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-500/20">Audio</button>
                                                     <button onClick={() => setFormModalState({ isOpen: true, mode: 'edit', data: entry })} className="bg-yellow-500/10 text-yellow-600 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-yellow-500/20">Edit</button>
-                                                    <button onClick={() => setDeleteModalWord(entry)} className="bg-red-500/10 text-red-500 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-red-500/20">Delete</button>
+                                                    <button onClick={() => setDeleteModalWord(entry)} className="bg-red-500/10 text-red-500 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-red-500/20">Hapus</button>
                                                 </div>
                                                 <div className="sm:hidden">
                                                     <button onClick={() => setDetailModalWord(entry)} className="bg-background text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-background/80">Detail</button>

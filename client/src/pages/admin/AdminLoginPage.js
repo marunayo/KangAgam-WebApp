@@ -37,7 +37,7 @@ const AdminLoginPage = () => {
         }
 
         if (!formData.adminPassword.trim()) {
-            newErrors.adminPassword = 'Password wajib diisi.';
+            newErrors.adminPassword = 'Kata sandi wajib diisi.';
         }
         return newErrors;
     };
@@ -78,9 +78,9 @@ const AdminLoginPage = () => {
                     <div className="flex items-center justify-center md:justify-start gap-3 mt-8 md:mt-auto">
                         <img src={logoBalaiBahasa} alt="Logo Balai Bahasa" className="h-12 sm:h-16" />
                         <div className="text-left">
-                            <p className="text-base sm:text-lg font-bold text-gray-800 leading-tight">BALAI BAHASA</p>
-                            <p className="text-xs sm:text-sm font-semibold text-gray-700 leading-tight">PROVINSI JAWA BARAT</p>
-                            <p className="text-[10px] sm:text-xs text-gray-500 leading-tight mt-1">BADAN PENGEMBANGAN DAN PEMBINAAN BAHASA</p>
+                            <p className="text-sm sm:text-base font-bold text-gray-800 leading-tight">BALAI BAHASA PROVINSI JAWA BARAT</p>
+                            <p className="text-xs sm:text-sm font-semibold text-gray-700 leading-tight mt-0.5">BADAN PENGEMBANGAN DAN PEMBINAAN BAHASA</p>
+                            <p className="text-[10px] sm:text-xs text-gray-500 leading-tight mt-1">Kementerian Pendidikan Dasar dan Menengah Republik Indonesia</p>
                         </div>
                     </div>
                 </div>
@@ -99,7 +99,7 @@ const AdminLoginPage = () => {
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label htmlFor="adminEmail" className="block text-sm font-medium text-gray-600 mb-1">Email</label>
+                            <label htmlFor="adminEmail" className="block text-sm font-medium text-gray-600 mb-1">Posel</label>
                             <input 
                                 type="email" 
                                 name="adminEmail" 
@@ -113,7 +113,7 @@ const AdminLoginPage = () => {
                         </div>
                         
                         <div>
-                            <label htmlFor="adminPassword" className="block text-sm font-medium text-gray-600 mb-1">Password</label>
+                            <label htmlFor="adminPassword" className="block text-sm font-medium text-gray-600 mb-1">Kata sandi</label>
                             <input 
                                 type="password" 
                                 name="adminPassword" 

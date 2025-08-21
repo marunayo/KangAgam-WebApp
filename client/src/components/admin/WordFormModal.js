@@ -113,7 +113,7 @@ const WordFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
         const validatedEntries = entries.map(entry => {
             const newErrors = {};
             if (mode === 'add' && !entry.entryImage) {
-                newErrors.entryImage = 'Gambar utama wajib diunggah.';
+                newErrors.entryImage = 'Gambar wajib diunggah.';
                 allIsValid = false;
             }
             const filledVocabs = entry.vocabularies.filter(v => v.vocab.trim() !== '');
@@ -196,9 +196,25 @@ const WordFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
                                         )}
                                         <p className="font-bold text-text">Kosakata #{index + 1}</p>
                                         <div>
-                                            <label className="block text-sm font-medium text-text-secondary mb-1">Gambar Utama {mode === 'edit' && '(Opsional)'}</label>
+                                            <label className="block text-sm font-medium text-text-secondary mb-1">Gambar {mode === 'edit' && ''}</label>
                                             {entry.imagePreview && <div className="mt-2 mb-3"><img src={entry.imagePreview} alt="Pratinjau" className="w-24 h-24 object-cover rounded-lg" /></div>}
-                                            <input type="file" accept="image/*" onChange={(e) => handleImageChange(entry.id, e)} className="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                                            <div className="relative">
+                                                <input 
+                                                    type="file" 
+                                                    accept="image/*" 
+                                                    onChange={(e) => handleImageChange(entry.id, e)}
+                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                    id={`image-input-${entry.id}`}
+                                                />
+                                                <div className="flex items-center justify-between w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-text cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                        {entry.entryImage ? entry.entryImage.name : 'Tidak ada berkas yang dipilih'}
+                                                    </span>
+                                                    <span className="px-3 py-1 bg-primary/10 text-primary text-sm font-semibold rounded-full">
+                                                        Pilih berkas
+                                                    </span>
+                                                </div>
+                                            </div>
                                             {entry.errors.entryImage && <p className="text-red-500 text-xs mt-1">{entry.errors.entryImage}</p>}
                                         </div>
                                         <hr className="border-background"/>
@@ -211,14 +227,30 @@ const WordFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
                                                         <input type="text" value={voc.vocab} onChange={(e) => handleVocabChange(entry.id, vocIndex, 'vocab', e.target.value)} className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-text" />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-text-secondary mb-1">File Audio {mode === 'edit' && '(Opsional)'}</label>
+                                                        <label className="block text-sm font-medium text-text-secondary mb-1">Berkas Audio {mode === 'edit' && ''}</label>
                                                         {mode === 'edit' && voc.existingAudioUrl && !voc.audioFile && (
                                                             <div className="flex items-center justify-between text-xs text-text-secondary mt-1 mb-2 p-2 bg-background-secondary rounded-md">
-                                                                <span className="truncate pr-2">File: {voc.existingAudioUrl.split('/').pop()}</span>
+                                                                <span className="truncate pr-2">Berkas: {voc.existingAudioUrl.split('/').pop()}</span>
                                                                 <button type="button" onClick={() => handlePlayAudio(voc.existingAudioUrl)} className="p-1 rounded-full text-primary hover:bg-primary/10"><PlayIcon /></button>
                                                             </div>
                                                         )}
-                                                        <input type="file" accept="audio/*" onChange={(e) => handleVocabChange(entry.id, vocIndex, 'audioFile', e.target.files[0])} className="w-full text-sm text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500/10 file:text-blue-600 hover:file:bg-blue-500/20"/>
+                                                        <div className="relative">
+                                                            <input 
+                                                                type="file" 
+                                                                accept="audio/*" 
+                                                                onChange={(e) => handleVocabChange(entry.id, vocIndex, 'audioFile', e.target.files[0])}
+                                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                                id={`audio-input-${entry.id}-${vocIndex}`}
+                                                            />
+                                                            <div className="flex items-center justify-between w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-background text-text cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                                    {voc.audioFile ? voc.audioFile.name : 'Tidak ada berkas yang dipilih'}
+                                                                </span>
+                                                                <span className="px-3 py-1 bg-blue-500/10 text-blue-600 text-sm font-semibold rounded-full">
+                                                                    Pilih berkas
+                                                                </span>
+                                                            </div>
+                                                        </div>
                                                         {entry.errors[`audio_${vocIndex}`] && <p className="text-red-500 text-xs mt-1">{entry.errors[`audio_${vocIndex}`]}</p>}
                                                     </div>
                                                 </div>

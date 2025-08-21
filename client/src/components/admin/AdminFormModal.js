@@ -56,11 +56,11 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
 
         if (mode === 'add') {
             if (!formData.adminPassword || !formData.confirmPassword) {
-                setError('Password dan konfirmasi password wajib diisi.');
+                setError('Kata sandi dan konfirmasi kata sandi wajib diisi.');
                 return;
             }
             if (formData.adminPassword !== formData.confirmPassword) {
-                setError('Password dan konfirmasi password tidak cocok.');
+                setError('Kata sandi dan konfirmasi kata sandi tidak cocok.');
                 return;
             }
         }
@@ -146,13 +146,13 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                                         <option value="superadmin">Superadmin</option>
                                     </select>
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div className="space-y-4">
                                     <div>
                                         <label
                                             htmlFor="adminPassword"
                                             className="block text-sm font-medium text-gray-600 mb-1"
                                         >
-                                            {mode === 'edit' ? 'Password Baru (Opsional)' : 'Password'}
+                                            {mode === 'edit' ? 'Kata sandi Baru (Opsional)' : 'Kata sandi'}
                                         </label>
                                         <input
                                             type="password"
@@ -169,7 +169,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                                             htmlFor="confirmPassword"
                                             className="block text-sm font-medium text-gray-600 mb-1"
                                         >
-                                            Konfirmasi Password
+                                            Konfirmasi kata sandi
                                         </label>
                                         <input
                                             type="password"
