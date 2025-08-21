@@ -140,3 +140,4 @@ vite.config.ts.timestamp-*
 service/package-lock.json
 package-lock.json
 /service/public
+/.docker-data

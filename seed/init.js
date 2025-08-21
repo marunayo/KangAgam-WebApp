@@ -29,8 +29,8 @@ const targetDB = db.getSiblingDB('KangAgam-DB');
 if (targetDB.admins.countDocuments() === 0) {
     targetDB.admins.insertOne({
         adminName: "Super Admin",
-        adminEmail: "superadmin@example.com",
-        adminPassword: "$2b$10$4Z4fRj0k4n5hVkJEQsKRcesLjIbkq7Mqyw4EWTwq9kwoxADDzOwNi",
+        adminEmail: "superadmin@email.com",
+        adminPassword: "$2b$10$WKX7zPJuiTPq.Irk6Coeqe5is3uxLS8q7znt4LUd.arl.a.T6nWiO",
         role: "superadmin"
     });
     print('Seeding "admins" collection selesai.');

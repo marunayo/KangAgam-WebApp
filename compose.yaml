@@ -1,8 +1,4 @@
-# docker-compose.yml
-
-# The 'version' tag is optional in recent versions of Docker Compose 
-# but can be useful for clarity.
-version: "3.8"
+# docker-compose.yml0
 
 services:
   # 'service', 'client', and 'database' must all be at the same 
@@ -13,6 +9,8 @@ services:
     container_name: service-api
     ports:
       - "5000:5000"
+    env_file:
+      - ./service/.env
     volumes:
       # This volume mount looks correct for Azure App Service.
       - ${WEBAPP_STORAGE_HOME}/uploads:/app/public/uploads
