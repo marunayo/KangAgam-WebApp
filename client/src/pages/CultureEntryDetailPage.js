@@ -26,7 +26,7 @@ const getVideoUrl = (videoUrl) => {
     }
     
     // Jika berupa path lokal, buat URL lengkap
-    return `http://localhost:5000/${videoUrl.replace(/\\/g, '/').replace('public/', '')}`;
+    return `http://10.10.48.38:5000/${videoUrl.replace(/\\/g, '/').replace('public/', '')}`;
 };
 
 // ✅ 1. Komponen Modal Gambar
@@ -160,7 +160,7 @@ const CultureEntryDetailPage = () => {
     console.log('Is YouTube:', isYouTube); // Debug log
     
     const imageUrl = entry.imagePath ? 
-        `http://localhost:5000/${entry.imagePath.replace(/\\/g, '/').replace('public/', '')}` 
+        `http://10.10.48.38:5000/${entry.imagePath.replace(/\\/g, '/').replace('public/', '')}` 
         : null;
 
     return (

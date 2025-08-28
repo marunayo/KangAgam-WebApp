@@ -46,7 +46,7 @@ const CultureTopicFormModal = ({ isOpen, onClose, onSubmit, mode, initialData })
                 let imagePreview = null;
                 if (initialData.imagePath) {
                     const correctedPath = initialData.imagePath.replace(/\\/g, '/').replace('public/', '');
-                    imagePreview = `http://localhost:5000/${correctedPath}`;
+                    imagePreview = `http://10.10.48.38:5000/${correctedPath}`;
                 }
 
                 setTopics([{

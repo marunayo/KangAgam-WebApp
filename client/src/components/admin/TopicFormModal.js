@@ -33,7 +33,7 @@ const TopicFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
                     id: initialData._id,
                     topicNames: names,
                     imageFile: null,
-                    imagePreview: initialData.topicImagePath ? `http://localhost:5000${initialData.topicImagePath}` : null,
+                    imagePreview: initialData.topicImagePath ? `http://10.10.48.38:5000${initialData.topicImagePath}` : null,
                     status: initialData.status || 'Published',
                     errors: {},
                 }]);

@@ -1,25 +1,20 @@
-# service/Dockerfile (Versi Perbaikan)
-
+# Menggunakan image resmi Node.js versi 18 yang ringan
 FROM node:18-alpine
-ENV NODE_ENV=production
+
+# Menetapkan direktori kerja di dalam container
 WORKDIR /app
 
-# Instalasi dependensi tetap sama
-RUN --mount=type=bind,source=package.json,target=package.json \
-    --mount=type=bind,source=package-lock.json,target=package-lock.json \
-    --mount=type=cache,target=/root/.npm \
-    npm ci --omit=dev
+# Salin package.json dan package-lock.json terlebih dahulu untuk caching
+COPY package*.json ./
 
-# Salin semua sisa kode aplikasi
+# Install semua dependensi produksi
+RUN npm install --omit=dev
+
+# Salin sisa kode dari folder 'service' ke dalam direktori kerja '/app'
 COPY . .
 
-# ======== TAMBAHKAN BARIS INI ========
-# Ubah kepemilikan seluruh direktori /app menjadi milik user 'node'
-RUN chown -R node:node /app
-# =====================================
-
-# Baru beralih ke user 'node'
-USER node
-
+# Expose port yang akan digunakan oleh aplikasi
 EXPOSE 5000
+
+# Perintah default untuk menjalankan aplikasi
 CMD ["npm", "start"]

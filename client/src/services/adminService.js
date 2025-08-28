@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/admins';
+const API_URL = 'http://10.10.48.38:5000/api/admins';
 
 const login = async (adminData) => {
     try {

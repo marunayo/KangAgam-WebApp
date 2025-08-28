@@ -16,7 +16,7 @@ const UserLayout = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/visitor-logs/stats');
+                const response = await axios.get('http://10.10.48.38:5000/api/visitor-logs/stats');
                 setTotalUniqueVisitors(response.data.totalUniqueVisitors || 0);
             } catch (error) {
                 console.error('Failed to fetch visitor stats:', error);
