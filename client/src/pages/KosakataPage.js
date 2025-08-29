@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -93,8 +93,90 @@ const KosakataPage = () => {
     const [isAudioPlaying, setIsAudioPlaying] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
     
+    // ✅ TAMBAHAN: State untuk audio opening
+    const [isOpening, setIsOpening] = useState(false);
+    
     // ✅ TAMBAHAN: State untuk mendeteksi apakah topik tidak ditemukan
     const [isTopicNotFound, setIsTopicNotFound] = useState(false);
+
+    // ✅ PERBAIKAN: Fungsi untuk menghentikan audio yang sedang berjalan
+    const stopCurrentAudio = useCallback(() => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+            audioRef.current.removeEventListener('ended', () => {});
+            audioRef.current = null;
+        }
+        setIsAudioPlaying(false);
+    }, []);
+
+    // ✅ PERBAIKAN: useEffect untuk cleanup audio saat komponen unmount atau navigasi
+    useEffect(() => {
+        // Cleanup function yang akan dipanggil saat komponen akan di-unmount
+        return () => {
+            stopCurrentAudio();
+        };
+    }, [stopCurrentAudio]);
+
+    // ✅ PERBAIKAN: useEffect untuk mendeteksi perubahan route dan menghentikan audio
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            stopCurrentAudio();
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                stopCurrentAudio();
+            }
+        };
+
+        // Event listener untuk browser refresh/close
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        
+        // Event listener untuk tab visibility change
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [stopCurrentAudio]);
+
+    // ✅ TAMBAHAN: useEffect untuk memulai audio opening saat komponen pertama kali dimuat
+    useEffect(() => {
+        const playOpeningAudio = () => {
+            setIsOpening(true);
+
+            // Path audio opening - bisa disesuaikan dengan struktur folder Anda
+            const openingAudioPath = '/assets/audio/system/opening.wav';
+            const audio = new Audio(openingAudioPath);
+
+            // Fungsi untuk menyelesaikan opening
+            const finishOpening = () => {
+                setIsOpening(false);
+            };
+
+            // Event listeners untuk audio opening
+            audio.addEventListener('ended', finishOpening);
+            audio.addEventListener('error', (error) => {
+                console.error("Gagal memutar audio opening:", error);
+                finishOpening(); // Tetap lanjut meski audio gagal
+            });
+
+            // Mulai putar audio opening
+            audio.play().catch(error => {
+                console.error("Gagal memulai audio opening:", error);
+                finishOpening(); // Tetap lanjut meski audio gagal
+            });
+        };
+
+        // Delay sedikit untuk memastikan komponen sudah ter-render
+        const timer = setTimeout(() => {
+            playOpeningAudio();
+        }, 100);
+
+        return () => clearTimeout(timer);
+    }, []); // Empty dependency array = hanya jalankan sekali saat mount
 
     useEffect(() => {
         const fetchData = async () => {
@@ -150,11 +232,14 @@ const KosakataPage = () => {
         setCurrentPage(1); // Reset ke halaman pertama setelah sorting
     };
 
-    // ✅ FUNGSI BARU: Logika audio closing di-handle di sini
+    // ✅ PERBAIKAN: Fungsi handleBackClick yang menghentikan audio sebelum navigasi
     const handleBackClick = (e) => {
         e.preventDefault();
-        // Mencegah klik ganda saat transisi atau audio sedang berjalan
-        if (isClosing || isAudioPlaying) return;
+        // ✅ PERBAIKAN: Mencegah klik ganda saat transisi, opening, atau audio sedang berjalan
+        if (isClosing || isOpening) return;
+
+        // ✅ PERBAIKAN: Hentikan audio yang sedang berjalan terlebih dahulu
+        stopCurrentAudio();
 
         setIsClosing(true);
 
@@ -233,15 +318,18 @@ const KosakataPage = () => {
     };
 
     const handleCardClick = (entry) => {
-        if (isAudioPlaying || isClosing) return;
+        // ✅ PERBAIKAN: Cegah interaksi saat opening atau closing
+        if (isClosing || isOpening) return;
+        
+        // ✅ PERBAIKAN: Hentikan audio yang sedang berjalan sebelum memulai yang baru
+        if (isAudioPlaying) {
+            stopCurrentAudio();
+        }
+        
         setActiveEntry(entry);
         
         const audioUrl = findVocab(entry, i18n.language)?.audioUrl;
         if (!audioUrl) return;
-
-        if (audioRef.current) {
-            audioRef.current.pause();
-        }
 
         const audio = new Audio(`http://10.10.48.38:5000${audioUrl.replace(/\\/g, '/')}`);
         audioRef.current = audio;
@@ -252,14 +340,37 @@ const KosakataPage = () => {
             playCount++;
             if (playCount < 2) {
                 audio.currentTime = 0;
-                audio.play();
+                audio.play().catch(error => {
+                    console.error("Error replaying audio:", error);
+                    setIsAudioPlaying(false);
+                    audio.removeEventListener('ended', handleAudioEnd);
+                });
             } else {
                 setIsAudioPlaying(false);
                 audio.removeEventListener('ended', handleAudioEnd);
+                audioRef.current = null;
             }
         };
+
+        // ✅ PERBAIKAN: Tambahkan error handling untuk audio
+        const handleAudioError = () => {
+            console.error("Error loading audio:", audioUrl);
+            setIsAudioPlaying(false);
+            audio.removeEventListener('ended', handleAudioEnd);
+            audio.removeEventListener('error', handleAudioError);
+            audioRef.current = null;
+        };
+
         audio.addEventListener('ended', handleAudioEnd);
-        audio.play();
+        audio.addEventListener('error', handleAudioError);
+        
+        audio.play().catch(error => {
+            console.error("Error playing audio:", error);
+            setIsAudioPlaying(false);
+            audio.removeEventListener('ended', handleAudioEnd);
+            audio.removeEventListener('error', handleAudioError);
+            audioRef.current = null;
+        });
     };
 
     const entriesToDisplay = isDesktop ? filteredAndSortedEntries : paginatedEntries;
@@ -325,6 +436,10 @@ const KosakataPage = () => {
 
     return (
         <>
+            {/* ✅ TAMBAHAN: Modal untuk opening audio */}
+            <AudioProgressModal isOpen={isOpening} message="Selamat datang!" />
+            
+            {/* ✅ PERBAIKAN: Modal untuk closing audio */}
             <AudioProgressModal isOpen={isClosing} message="Sampai ketemu lagi!" />
             
             <motion.div
@@ -347,20 +462,31 @@ const KosakataPage = () => {
                                     <Link 
                                         to={isQuizDisabled ? '#' : `/quiz/${topicId}`}
                                         onClick={(e) => {
-                                            if (isQuizDisabled || isClosing) e.preventDefault();
+                                            // ✅ PERBAIKAN: Cegah navigasi saat opening, closing, atau quiz disabled
+                                            if (isQuizDisabled || isClosing || isOpening) e.preventDefault();
+                                            // ✅ PERBAIKAN: Hentikan audio saat navigasi ke quiz
+                                            else stopCurrentAudio();
                                         }}
                                         className={`flex-1 text-center font-bold px-4 py-2 rounded-lg text-sm transition-opacity ${
-                                            isQuizDisabled 
+                                            isQuizDisabled || isOpening
                                                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
                                                 : 'bg-primary text-white hover:opacity-90'
                                         }`}
-                                        title={isQuizDisabled ? "Kuis membutuhkan minimal 5 kosakata" : "Mulai Kuis"}
+                                        title={isQuizDisabled ? "Kuis membutuhkan minimal 5 kosakata" : isOpening ? "Menunggu..." : "Mulai Kuis"}
                                     >
                                         {t('quizButton')}
                                     </Link>
-                                    <button onClick={handleBackClick} className="flex-1 items-center justify-center gap-2 bg-background-secondary text-text-secondary font-bold px-4 py-2 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-700 whitespace-nowrap flex">
+                                    <button 
+                                        onClick={handleBackClick} 
+                                        disabled={isOpening || isClosing}
+                                        className={`flex-1 items-center justify-center gap-2 font-bold px-4 py-2 rounded-lg text-sm whitespace-nowrap flex transition-opacity ${
+                                            isOpening || isClosing 
+                                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                : 'bg-background-secondary text-text-secondary hover:bg-gray-200 dark:hover:bg-gray-700'
+                                        }`}
+                                    >
                                         <span>←</span>
-                                        <span>{t("backButton")}</span>
+                                        <span>{isOpening ? "Menunggu..." : t("backButton")}</span>
                                     </button>
                                 </div>
                             </div>
