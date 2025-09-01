@@ -145,7 +145,7 @@ const ExportControls = ({
                 disabled={isExporting}
                 className="bg-red-500/10 text-red-600 font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-500/20 text-sm"
             >
-                {isExporting ? 'Mengekspor...' : 'Export PDF'}
+                {isExporting ? 'Mengunduh...' : 'Unduh PDF'}
             </button>
             {/* <button onClick={handleExportExcel} className="...">Export Excel</button> */}
         </div>

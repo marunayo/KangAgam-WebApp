@@ -27,6 +27,10 @@ const ManageAdminsPage = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [settings, setSettings] = useState({ maxAdmins: 5 });
 
+    // ✅ TAMBAHAN: Fungsi untuk mengecek apakah user adalah superadmin
+    const isSuperAdmin = user?.role?.toLowerCase() === 'superadmin';
+    const isAdmin = user?.role?.toLowerCase() === 'admin';
+
     const fetchData = useCallback(async () => {
         if (!user?.token) return;
         setIsLoading(true);
@@ -67,7 +71,14 @@ const ManageAdminsPage = () => {
     const currentItems = filteredAdmins.slice(indexOfFirstItem, indexOfLastItem);
     const totalPages = Math.ceil(filteredAdmins.length / ITEMS_PER_PAGE);
 
-    const handleOpenModal = (type, mode, data = null) => setModalState({ type, mode, data });
+    const handleOpenModal = (type, mode, data = null) => {
+        // ✅ TAMBAHAN: Cek permission sebelum membuka modal tambah admin
+        if (mode === 'add' && !isSuperAdmin) {
+            alert('Hanya Superadmin yang dapat menambah admin baru.');
+            return;
+        }
+        setModalState({ type, mode, data });
+    };
     
     const handleCloseActionModal = () => {
         setModalState({ type: null, mode: null, data: null });
@@ -81,6 +92,12 @@ const ManageAdminsPage = () => {
     const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
 
     const handleFormSubmit = async (formData) => {
+        // ✅ TAMBAHAN: Double check permission saat submit form
+        if (modalState.mode === 'add' && !isSuperAdmin) {
+            alert('Hanya Superadmin yang dapat menambah admin baru.');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             if (modalState.mode === 'add') {
@@ -121,7 +138,6 @@ const ManageAdminsPage = () => {
 
     return (
         <div>
-            {/* ✅ PERBAIKAN: Tata letak header disamakan dengan halaman Kelola Topik */}
             <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl sm:text-3xl font-bold text-text">Daftar Admin</h1>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -135,18 +151,27 @@ const ManageAdminsPage = () => {
                             className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-background-secondary text-text"
                         />
                     </div>
-                    <button 
-                        onClick={() => handleOpenModal('form', 'add')} 
-                        className="bg-primary text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 flex-shrink-0 text-sm"
-                    >
-                        <PlusIcon />
-                        <span>Tambah</span>
-                    </button>
+                    {/* ✅ PERBAIKAN: Tombol Tambah hanya muncul untuk Superadmin */}
+                    {isSuperAdmin && (
+                        <button 
+                            onClick={() => handleOpenModal('form', 'add')} 
+                            className="bg-primary text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 flex-shrink-0 text-sm"
+                        >
+                            <PlusIcon />
+                            <span>Tambah</span>
+                        </button>
+                    )}
+                    {/* ✅ TAMBAHAN: Pesan informasi untuk Admin */}
+                    {isAdmin && (
+                        <div className="text-sm text-text-secondary bg-yellow-100 dark:bg-yellow-900/20 px-3 py-2 rounded-lg border border-yellow-300 dark:border-yellow-600">
+                            Hanya Superadmin yang dapat menambah admin baru
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* ✅ PERBAIKAN: Panel Pengaturan Superadmin disembunyikan */}
-            {/* {user?.role?.toLowerCase() === 'superadmin' && (
+            {/* Panel Pengaturan Superadmin - tetap tersembunyi seperti sebelumnya */}
+            {/* {isSuperAdmin && (
                 <div className="mb-6">
                     <AdminLimitSettings 
                         currentLimit={settings.maxAdmins}
@@ -181,7 +206,10 @@ const ManageAdminsPage = () => {
                                     <td className="p-3 px-6 text-right">
                                         <div className="hidden sm:flex justify-end items-center gap-2">
                                             <button onClick={() => handleOpenModal('form', 'edit', admin)} className="bg-yellow-500/10 text-yellow-600 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-yellow-500/20">Edit</button>
-                                            <button onClick={() => handleOpenModal('delete', 'delete', admin)} className="bg-red-500/10 text-red-500 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-red-500/20">Hapus</button>
+                                            {/* ✅ PERBAIKAN: Tombol Hapus hanya untuk Superadmin */}
+                                            {isSuperAdmin && (
+                                                <button onClick={() => handleOpenModal('delete', 'delete', admin)} className="bg-red-500/10 text-red-500 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-red-500/20">Hapus</button>
+                                            )}
                                         </div>
                                         <div className="sm:hidden">
                                             <button onClick={() => setDetailModalAdmin(admin)} className="bg-gray-100 text-gray-800 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-200">
@@ -225,7 +253,7 @@ const ManageAdminsPage = () => {
                 admin={detailModalAdmin}
                 onClose={() => setDetailModalAdmin(null)}
                 onEdit={() => handleOpenModal('form', 'edit', detailModalAdmin)}
-                onDelete={() => handleOpenModal('delete', 'delete', detailModalAdmin)}
+                onDelete={() => isSuperAdmin ? handleOpenModal('delete', 'delete', detailModalAdmin) : alert('Hanya Superadmin yang dapat menghapus admin.')}
             />
         </div>
     );

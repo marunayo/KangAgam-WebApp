@@ -195,7 +195,7 @@ const ManageTopicsPage = () => {
                                     </div>
                                 </th>
                                 <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[20%]">Total Kosakata</th>
-                                <th className="p-3 px-6 font-bold text-text-secondary text-right">Action</th>
+                                <th className="p-3 px-6 font-bold text-text-secondary text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -218,7 +218,7 @@ const ManageTopicsPage = () => {
                                                     <Link to={`/topik/${topic._id}`} target="_blank" rel="noopener noreferrer" className="bg-gray-500/10 text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-500/20">Pratinjau</Link>
                                                     <Link to={`/admin/manage-topics/${topic._id}`} className="bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-primary/20">Kosakata</Link>
                                                     <button onClick={() => setFormModalState({ isOpen: true, mode: 'edit', data: topic })} className="bg-yellow-500/10 text-yellow-600 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-yellow-500/20">Edit</button>
-                                                    <button onClick={() => setDeleteModalTopic(topic)} className="bg-red-500/10 text-red-500 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-red-500/20">Delete</button>
+                                                    <button onClick={() => setDeleteModalTopic(topic)} className="bg-red-500/10 text-red-500 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-red-500/20">Hapus</button>
                                                 </div>
                                                 <div className="sm:hidden">
                                                     <button onClick={() => setDetailModalTopic(topic)} className="bg-background text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-background/80">Detail</button>

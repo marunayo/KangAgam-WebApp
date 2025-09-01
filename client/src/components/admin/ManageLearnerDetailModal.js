@@ -8,7 +8,7 @@ const CloseIcon = () => (
     </svg>
 );
 
-const ManageLearnerDetailModal = ({ learner, onClose, onDelete }) => {
+const ManageLearnerDetailModal = ({ learner, onClose, onDelete, hideDeleteButton = false }) => {
     return (
         <AnimatePresence>
             {learner && (
@@ -45,11 +45,14 @@ const ManageLearnerDetailModal = ({ learner, onClose, onDelete }) => {
                             </div>
                         </div>
 
-                        <footer className="p-4 pt-0">
-                            <button onClick={onDelete} className="w-full bg-red-500 text-white font-bold py-3 rounded-lg hover:bg-red-600 text-sm">
-                                Hapus Pengguna
-                            </button>
-                        </footer>
+                        {/* Conditionally render the footer with delete button */}
+                        {!hideDeleteButton && (
+                            <footer className="p-4 pt-0">
+                                <button onClick={onDelete} className="w-full bg-red-500 text-white font-bold py-3 rounded-lg hover:bg-red-600 text-sm">
+                                    Hapus Pengguna
+                                </button>
+                            </footer>
+                        )}
                     </motion.div>
                 </motion.div>
             )}

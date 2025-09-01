@@ -285,7 +285,7 @@ const StatisticsPage = () => {
                 {/* Card Pengunjung Unik */}
                 <div className="bg-background-secondary p-6 rounded-xl shadow-md">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-text">Pengunjung Unik</h3>
+                        <h3 className="font-bold text-text">Total Pengunjung</h3>
                         <select name="uniqueVisitorsPeriod" value={filters.uniqueVisitorsPeriod} onChange={handleFilterChange} className="bg-background text-text-secondary rounded-lg px-3 py-1 text-sm border border-gray-300 dark:border-gray-600">
                             <option value="daily">Harian</option>
                             <option value="weekly">Mingguan</option>
@@ -308,7 +308,7 @@ const StatisticsPage = () => {
                 {/* Card Asal Domisili */}
                 <div className="bg-background-secondary p-6 rounded-xl shadow-md">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-bold text-text">Domisili Pengunjung Aktif</h3>
+                        <h3 className="font-bold text-text">Domisili Pengunjung Terbanyak</h3>
                         <select name="cityPeriod" value={filters.cityPeriod} onChange={handleFilterChange} className="bg-background text-text-secondary rounded-lg px-3 py-1 text-sm border border-gray-300 dark:border-gray-600">
                             <option value="daily">Harian</option>
                             <option value="weekly">Mingguan</option>

@@ -124,7 +124,6 @@ const ManageLearnersPage = () => {
                             <th className="p-3 px-6 font-bold text-text-secondary">Nama Lengkap</th>
                             <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[25%]">Domisili</th>
                             <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[20%]">No. Telepon</th>
-                            <th className="p-3 px-6 font-bold text-text-secondary text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -146,9 +145,7 @@ const ManageLearnersPage = () => {
                                         <td className="hidden sm:table-cell p-3 px-6 text-text-secondary">{learner.learnerCity}</td>
                                         <td className="hidden sm:table-cell p-3 px-6 text-text-secondary">{learner.learnerPhone || '-'}</td>
                                         <td className="p-3 px-6 text-right">
-                                            <div className="hidden sm:flex justify-end">
-                                                <button onClick={() => setLearnerToDelete(learner)} className="bg-red-500/10 text-red-500 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-red-500/20">Hapus</button>
-                                            </div>
+
                                             <div className="sm:hidden">
                                                 <button onClick={() => setDetailModalLearner(learner)} className="bg-gray-100 text-gray-800 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-200">
                                                     Detail
@@ -182,10 +179,12 @@ const ManageLearnersPage = () => {
                 title="Hapus Pengguna"
                 message={`Apakah Anda yakin ingin menghapus pengguna "${learnerToDelete?.learnerName}"? Aksi ini tidak dapat dibatalkan.`}
             />
+            {/* ✅ Modified: Pass hideDeleteButton prop to hide delete button */}
             <ManageLearnerDetailModal
                 learner={detailModalLearner}
                 onClose={() => setDetailModalLearner(null)}
                 onDelete={() => setLearnerToDelete(detailModalLearner)}
+                hideDeleteButton={true} // Add this prop to hide the delete button
             />
         </div>
     );

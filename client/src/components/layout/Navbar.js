@@ -46,9 +46,9 @@ const Navbar = ({ onMenuToggle, isMenuOpen, totalUniqueVisitors }) => {
                         <NavLink to="/home" className={navLinkStyles}>
                             Kamus Kosakata
                         </NavLink>
-                        <NavLink to="/kamus-budaya" className={navLinkStyles}>
+                        {/* <NavLink to="/kamus-budaya" className={navLinkStyles}>
                             Kamus Budaya
-                        </NavLink>
+                        </NavLink> */}
                         
                         <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-2"></div>
 
