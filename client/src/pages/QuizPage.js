@@ -108,7 +108,7 @@ const QuizPage = () => {
     const playQuestionAudio = useCallback((audioUrl) => {
         if (!audioUrl) return;
         if (audioRef.current) audioRef.current.pause();
-        const audio = new Audio(`http://10.10.48.38:5000${audioUrl}`);
+        const audio = new Audio(`${process.env.REACT_APP_API_URL}${audioUrl}`);
         audioRef.current = audio;
         audio.play().catch(e => e.name !== 'AbortError' && console.error(e));
     }, []);
@@ -368,7 +368,7 @@ const QuizPage = () => {
                                                 `}
                                             >
                                                 <img 
-                                                    src={`http://10.10.48.38:5000${opt.entryImagePath}`} 
+                                                    src={`${process.env.REACT_APP_API_URL}${opt.entryImagePath}`} 
                                                     className="w-full h-full object-cover" 
                                                     alt="Pilihan Jawaban" 
                                                 />

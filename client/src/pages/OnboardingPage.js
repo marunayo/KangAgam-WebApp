@@ -6,6 +6,7 @@ import Select from 'react-select';
 
 const logo = '/assets/images/logo-kang-agam.png';
 const logoBalaiBahasa = '/assets/images/logo/tut-wuri-handayani.svg';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const OnboardingPage = () => {
     const navigate = useNavigate();
@@ -25,8 +26,8 @@ const OnboardingPage = () => {
     useEffect(() => {
         const fetchCities = async () => {
             try {
-                const response = await axios.get(`http://10.10.48.38:5000/api/locations/cities`);
-		console.log("RESPON ASLI DARI BACKEND:", response.data);
+                const response = await axios.get(`${API_URL}/api/locations/cities`);
+		        console.log("RESPON ASLI DARI BACKEND:", response.data);
                 const cityData = response.data.map(city => ({
                     value: city.name,
                     label: city.name,
@@ -84,6 +85,7 @@ const OnboardingPage = () => {
         return newErrors;
     };
 
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
         const formErrors = validateForm();
@@ -101,7 +103,7 @@ const OnboardingPage = () => {
                 learnerPhone: formData.nomorTelepon,
                 learnerCity: selectedCity.value, 
             };
-            const response = await axios.post(`http://10.10.48.38:5000/api/learners`, learnerData);
+            const response = await axios.post(`${API_URL}/api/learners`, learnerData);
             const userData = { ...response.data.data, role: 'user' };
             login(userData);
             navigate('/home', { replace: true });

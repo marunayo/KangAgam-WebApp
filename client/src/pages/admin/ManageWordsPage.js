@@ -248,7 +248,7 @@ const ManageWordsPage = () => {
                                             <td className="hidden sm:table-cell p-3 px-6 text-text-secondary truncate">{findVocab(entry, 'en')}</td>
                                             <td className="p-3 px-6 text-right">
                                                 <div className="hidden sm:flex justify-end items-center gap-2">
-                                                    <button onClick={() => setImageModalUrl(`http://10.10.48.38:5000${entry.entryImagePath}`)} className="bg-gray-500/10 text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-500/20">Gambar</button>
+                                                    <button onClick={() => setImageModalUrl(`${process.env.REACT_APP_API_URL}${entry.entryImagePath}`)} className="bg-gray-500/10 text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-500/20">Gambar</button>
                                                     <button onClick={() => setAudioModalEntry(entry)} className="bg-gray-500/10 text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-500/20">Audio</button>
                                                     <button onClick={() => setFormModalState({ isOpen: true, mode: 'edit', data: entry })} className="bg-yellow-500/10 text-yellow-600 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-yellow-500/20">Edit</button>
                                                     <button onClick={() => setDeleteModalWord(entry)} className="bg-red-500/10 text-red-500 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-red-500/20">Hapus</button>
@@ -296,7 +296,7 @@ const ManageWordsPage = () => {
                 onClose={() => setDetailModalWord(null)}
                 onEdit={() => setFormModalState({ isOpen: true, mode: 'edit', data: detailModalWord })}
                 onDelete={() => setDeleteModalWord(detailModalWord)}
-                onViewImage={() => setImageModalUrl(`http://10.10.48.38:5000${detailModalWord.entryImagePath}`)}
+                onViewImage={() => setImageModalUrl(`${process.env.REACT_APP_API_URL}${detailModalWord.entryImagePath}`)}
                 onPlayAudio={() => setAudioModalEntry(detailModalWord)}
                 findVocab={findVocab}
             />

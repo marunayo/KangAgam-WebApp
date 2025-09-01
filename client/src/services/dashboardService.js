@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://10.10.48.38:5000/api/dashboard';
+const API_URL = `${process.env.REACT_APP_API_URL}/api/dashboard`;
 
 /**
  * Mengambil data statistik dari backend.

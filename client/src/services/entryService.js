@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://10.10.48.38:5000/api';
+const API_URL = `${process.env.REACT_APP_API_URL}/api`;
 
 // Fungsi ini publik, tidak perlu token
 export const getEntriesByTopicId = async (topicId) => {

@@ -132,7 +132,7 @@ const CultureTopicsPage = () => {
                                 >
                                     <div className="relative h-48 w-full overflow-hidden">
                                         <img
-                                            src={`http://10.10.48.38:5000/${topic.imagePath.replace(/\\/g, '/').replace('public/', '')}`}
+                                            src={`${process.env.REACT_APP_API_URL}/${topic.imagePath.replace(/\\/g, '/').replace('public/', '')}`}
                                             alt={getLocalizedName(topic.name)}
                                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                         />

@@ -47,7 +47,7 @@ const WordFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
                 setEntries([{
                     id: initialData._id,
                     entryImage: null,
-                    imagePreview: initialData.entryImagePath ? `http://10.10.48.38:5000${initialData.entryImagePath}` : null,
+                    imagePreview: initialData.entryImagePath ? `${process.env.REACT_APP_API_URL}${initialData.entryImagePath}` : null,
                     vocabularies: initialVocabs,
                     errors: {},
                 }]);
@@ -113,7 +113,7 @@ const WordFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
 
     const handlePlayAudio = (audioUrl) => {
         if (audioPlayer.current) audioPlayer.current.pause();
-        const newAudio = new Audio(`http://10.10.48.38:5000${audioUrl}`);
+        const newAudio = new Audio(`${process.env.REACT_APP_API_URL}${audioUrl}`);
         audioPlayer.current = newAudio;
         newAudio.play();
     };

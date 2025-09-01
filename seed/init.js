@@ -30,7 +30,7 @@ if (targetDB.admins.countDocuments() === 0) {
     targetDB.admins.insertOne({
         adminName: "Super Admin",
         adminEmail: "superadmin@email.com",
-        adminPassword: "$2b$10$WKX7zPJuiTPq.Irk6Coeqe5is3uxLS8q7znt4LUd.arl.a.T6nWiO",
+        adminPassword: "$2b$10$0LCI5PpPuHc129b23FXkpuosZSvinQhpBmMY6SUH5MeDNw0KbcmjO",
         role: "superadmin"
     });
     print('Seeding "admins" collection selesai.');
