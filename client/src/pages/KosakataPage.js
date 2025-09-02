@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -77,6 +77,7 @@ const KosakataPage = () => {
     const { topicId } = useParams();
     const { t, i18n } = useTranslation();
     const navigate = useNavigate();
+    const location = useLocation();
     const isDesktop = useMediaQuery('(min-width: 1024px)');
     const pageTopRef = useRef(null);
     const activeCardRef = useRef(null);
@@ -144,6 +145,10 @@ const KosakataPage = () => {
 
     // ✅ TAMBAHAN: useEffect untuk memulai audio opening saat komponen pertama kali dimuat
     useEffect(() => {
+        if (location.state?.fromQuiz) {
+            return; // Skip audio opening jika kembali dari quiz
+        }
+
         const playOpeningAudio = () => {
             setIsOpening(true);
 
@@ -176,7 +181,7 @@ const KosakataPage = () => {
         }, 100);
 
         return () => clearTimeout(timer);
-    }, []); // Empty dependency array = hanya jalankan sekali saat mount
+    }, [location.state]); // Depend on location.state
 
     useEffect(() => {
         const fetchData = async () => {
@@ -463,6 +468,7 @@ const KosakataPage = () => {
                                 <div className='flex items-center gap-4 w-full sm:w-auto'>
                                     <Link 
                                         to={isQuizDisabled ? '#' : `/quiz/${topicId}`}
+                                        state={{ fromQuiz: false }} // Ensure state is reset when going to quiz
                                         onClick={(e) => {
                                             // ✅ PERBAIKAN: Cegah navigasi saat opening, closing, atau quiz disabled
                                             if (isQuizDisabled || isClosing || isOpening) e.preventDefault();

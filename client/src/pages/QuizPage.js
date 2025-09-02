@@ -259,6 +259,7 @@ const QuizPage = () => {
                         <PageHeader title={`Kuis Topik ${topicName}`}>
                             <Link 
                                 to={`/topik/${topicId}`} 
+                                state={{ fromQuiz: true }}
                                 className="flex items-center justify-center gap-2 bg-background-secondary text-text-secondary font-bold px-4 py-2 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-700 whitespace-nowrap"
                             >
                                 <span>←</span>
@@ -317,6 +318,7 @@ const QuizPage = () => {
                                         </p>
                                         <Link 
                                             to={`/topik/${topicId}`} 
+                                            state={{ fromQuiz: true }}
                                             className="bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 font-bold inline-block"
                                         >
                                             Kembali ke Topik
@@ -432,7 +434,7 @@ const QuizPage = () => {
                                     Coba Lagi
                                 </button>
                                 <button 
-                                    onClick={() => navigate(`/topik/${topicId}`)} 
+                                    onClick={() => navigate(`/topik/${topicId}`, { state: { fromQuiz: true } })} 
                                     className="w-full bg-background text-text px-6 py-3 rounded-lg hover:bg-background/80 font-bold"
                                 >
                                     Kembali ke Topik
