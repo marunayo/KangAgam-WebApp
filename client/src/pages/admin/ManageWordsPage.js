@@ -1,3 +1,4 @@
+// ManageWordsPage.js (Modified)
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Pagination from '../../components/ui/Pagination';
@@ -6,6 +7,7 @@ import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import ManageWordDetailModal from '../../components/admin/ManageWordDetailModal';
 import ImageModal from '../../components/admin/ImageModal';
 import AudioPlayerModal from '../../components/admin/AudioPlayerModal';
+import StatusModal from '../../components/admin/StatusModal'; // Import the new StatusModal
 import { getEntriesByTopicId, addEntry, updateEntry, deleteEntry } from '../../services/entryService';
 import { getTopicById } from '../../services/topicService';
 import { useAuth } from '../../context/AuthContext';
@@ -35,6 +37,7 @@ const ManageWordsPage = () => {
     const [deleteModalWord, setDeleteModalWord] = useState(null);
     const [detailModalWord, setDetailModalWord] = useState(null);
     const [selectedWords, setSelectedWords] = useState([]);
+    const [statusModal, setStatusModal] = useState({ isOpen: false, message: '', type: 'success' }); // New state for status modal
 
     const fetchData = useCallback(async () => {
         try {
@@ -61,7 +64,7 @@ const ManageWordsPage = () => {
     const handleFormSubmit = async (data) => {
         const token = user?.token;
         if (!token) {
-            alert("Otentikasi gagal. Silakan login kembali.");
+            setStatusModal({ isOpen: true, message: "Otentikasi gagal. Silakan login kembali.", type: 'error' });
             return;
         }
         const isMultiAdd = Array.isArray(data);
@@ -69,16 +72,16 @@ const ManageWordsPage = () => {
         try {
             if (formModalState.mode === 'add') {
                 await Promise.all(submissions.map(formData => addEntry(topicId, formData, token)));
-                alert(`Berhasil menambahkan ${submissions.length} kosakata!`);
+                setStatusModal({ isOpen: true, message: `Berhasil menambahkan ${submissions.length} kosakata!`, type: 'success' });
             } else if (formModalState.mode === 'edit') {
                 await updateEntry(topicId, formModalState.data._id, submissions[0], token);
-                alert('Kosakata berhasil diperbarui!');
+                setStatusModal({ isOpen: true, message: 'Kosakata berhasil diperbarui!', type: 'success' });
             }
             fetchData();
         } catch (err) {
             // ✅ [PROBLEM-2] Menampilkan pesan error yang lebih spesifik dari API
             const errorMessage = err.response?.data?.message || 'Terjadi kesalahan pada server.';
-            alert(`Gagal: ${errorMessage}`);
+            setStatusModal({ isOpen: true, message: `Gagal: ${errorMessage}`, type: 'error' });
         } finally {
             setFormModalState({ isOpen: false, mode: 'add', data: null });
             setDetailModalWord(null);
@@ -89,17 +92,17 @@ const ManageWordsPage = () => {
         if (!deleteModalWord) return;
         const token = user?.token;
         if (!token) {
-            alert("Otentikasi gagal. Silakan login kembali.");
+            setStatusModal({ isOpen: true, message: "Otentikasi gagal. Silakan login kembali.", type: 'error' });
             return;
         }
         try {
             const idsToDelete = selectedWords.length > 0 ? selectedWords : [deleteModalWord._id];
             await Promise.all(idsToDelete.map(id => deleteEntry(topicId, id, token)));
-            alert(`Berhasil menghapus ${idsToDelete.length} kosakata!`);
+            setStatusModal({ isOpen: true, message: `Berhasil menghapus ${idsToDelete.length} kosakata!`, type: 'success' });
             fetchData();
             setSelectedWords([]);
         } catch (err) {
-            alert('Gagal menghapus kosakata.');
+            setStatusModal({ isOpen: true, message: 'Gagal menghapus kosakata.', type: 'error' });
         } finally {
             setDeleteModalWord(null);
             setDetailModalWord(null);
@@ -299,6 +302,12 @@ const ManageWordsPage = () => {
                 onViewImage={() => setImageModalUrl(`http://localhost:5000${detailModalWord.entryImagePath}`)}
                 onPlayAudio={() => setAudioModalEntry(detailModalWord)}
                 findVocab={findVocab}
+            />
+            <StatusModal
+                isOpen={statusModal.isOpen}
+                onClose={() => setStatusModal({ ...statusModal, isOpen: false })}
+                message={statusModal.message}
+                type={statusModal.type}
             />
         </div>
     );

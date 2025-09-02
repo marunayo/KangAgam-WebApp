@@ -1,3 +1,4 @@
+// ManageAdminsPage.js (Modified)
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import adminService from '../../services/adminService';
@@ -9,6 +10,7 @@ import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import LoadingIndicator from '../../components/ui/LoadingIndicator';
 import AdminLimitSettings from '../../components/admin/AdminLimitSettings';
 import ManageAdminDetailModal from '../../components/admin/ManageAdminDetailModal';
+import StatusModal from '../../components/admin/StatusModal'; // Import the new StatusModal
 
 const ITEMS_PER_PAGE = 5;
 
@@ -26,6 +28,7 @@ const ManageAdminsPage = () => {
     const [detailModalAdmin, setDetailModalAdmin] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [settings, setSettings] = useState({ maxAdmins: 5 });
+    const [statusModal, setStatusModal] = useState({ isOpen: false, message: '', type: 'success' }); // New state for status modal
 
     // ✅ TAMBAHAN: Fungsi untuk mengecek apakah user adalah superadmin
     const isSuperAdmin = user?.role?.toLowerCase() === 'superadmin';
@@ -74,7 +77,7 @@ const ManageAdminsPage = () => {
     const handleOpenModal = (type, mode, data = null) => {
         // ✅ TAMBAHAN: Cek permission sebelum membuka modal tambah admin
         if (mode === 'add' && !isSuperAdmin) {
-            alert('Hanya Superadmin yang dapat menambah admin baru.');
+            setStatusModal({ isOpen: true, message: 'Hanya Superadmin yang dapat menambah admin baru.', type: 'error' });
             return;
         }
         setModalState({ type, mode, data });
@@ -94,7 +97,7 @@ const ManageAdminsPage = () => {
     const handleFormSubmit = async (formData) => {
         // ✅ TAMBAHAN: Double check permission saat submit form
         if (modalState.mode === 'add' && !isSuperAdmin) {
-            alert('Hanya Superadmin yang dapat menambah admin baru.');
+            setStatusModal({ isOpen: true, message: 'Hanya Superadmin yang dapat menambah admin baru.', type: 'error' });
             return;
         }
 
@@ -102,17 +105,17 @@ const ManageAdminsPage = () => {
         try {
             if (modalState.mode === 'add') {
                 await adminService.createAdmin(formData, user.token);
-                alert('Admin baru berhasil ditambahkan!');
+                setStatusModal({ isOpen: true, message: 'Admin baru berhasil ditambahkan!', type: 'success' });
             } else if (modalState.mode === 'edit') {
                 await adminService.updateAdmin(modalState.data._id, formData, user.token);
-                alert('Admin berhasil diperbarui!');
+                setStatusModal({ isOpen: true, message: 'Admin berhasil diperbarui!', type: 'success' });
             }
             fetchData();
             handleCloseAllModals();
         } catch (err) {
             console.error('Form submit error:', err);
             const errorMessage = err.message || 'Terjadi kesalahan.';
-            alert(errorMessage);
+            setStatusModal({ isOpen: true, message: errorMessage, type: 'error' });
         } finally {
             setIsSubmitting(false);
         }
@@ -124,13 +127,13 @@ const ManageAdminsPage = () => {
         setIsSubmitting(true);
         try {
             await adminService.deleteAdmin(adminToDelete._id, user.token);
-            alert('Admin berhasil dihapus!');
+            setStatusModal({ isOpen: true, message: 'Admin berhasil dihapus!', type: 'success' });
             fetchData();
             handleCloseAllModals();
         } catch (err) {
             console.error('Delete admin error:', err);
             const errorMessage = err.message || 'Gagal menghapus admin.';
-            alert(errorMessage);
+            setStatusModal({ isOpen: true, message: errorMessage, type: 'error' });
         } finally {
             setIsSubmitting(false);
         }
@@ -253,7 +256,13 @@ const ManageAdminsPage = () => {
                 admin={detailModalAdmin}
                 onClose={() => setDetailModalAdmin(null)}
                 onEdit={() => handleOpenModal('form', 'edit', detailModalAdmin)}
-                onDelete={() => isSuperAdmin ? handleOpenModal('delete', 'delete', detailModalAdmin) : alert('Hanya Superadmin yang dapat menghapus admin.')}
+                onDelete={() => isSuperAdmin ? handleOpenModal('delete', 'delete', detailModalAdmin) : setStatusModal({ isOpen: true, message: 'Hanya Superadmin yang dapat menghapus admin.', type: 'error' })}
+            />
+            <StatusModal
+                isOpen={statusModal.isOpen}
+                onClose={() => setStatusModal({ ...statusModal, isOpen: false })}
+                message={statusModal.message}
+                type={statusModal.type}
             />
         </div>
     );
