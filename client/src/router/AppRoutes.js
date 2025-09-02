@@ -58,7 +58,7 @@ const AnimatedRoutes = () => {
             '/admin/login': 'Admin Login'
         };
         
-        const currentTitle = titles[location.pathname] || 'Aplikasi Budaya';
+        const currentTitle = titles[location.pathname] || 'Kang Agam';
         document.title = currentTitle;
     }, [location.pathname]);
     

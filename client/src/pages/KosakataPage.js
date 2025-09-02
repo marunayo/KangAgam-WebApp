@@ -450,9 +450,11 @@ const KosakataPage = () => {
                 transition={pageTransition}
                 ref={pageTopRef}
             >
-                <div className="sticky top-0 z-20 bg-background pt-4 pb-4 border-b border-gray-200 dark:border-gray-700/50">
+                {/* ✅ PERBAIKAN: Fixed header positioning dengan proper z-index dan padding */}
+                <div className="sticky top-0 z-30 bg-background shadow-sm border-b border-gray-200 dark:border-gray-700/50">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-6 py-6">
+                            {/* ✅ PERBAIKAN: Header section dengan proper spacing */}
                             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                                 <PageHeader 
                                     title={getTranslatedTopicName()}
@@ -491,6 +493,7 @@ const KosakataPage = () => {
                                 </div>
                             </div>
                             
+                            {/* ✅ PERBAIKAN: Search and sort section dengan spacing yang lebih baik */}
                             <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
                                 <div className="relative w-full sm:max-w-xs">
                                     <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -501,13 +504,13 @@ const KosakataPage = () => {
                                         placeholder="Cari kosakata..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-background-secondary text-text focus:ring-1 focus:ring-primary focus:border-primary shadow-sm"
+                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-background-secondary text-text focus:ring-2 focus:ring-primary focus:border-primary shadow-sm transition-all duration-200"
                                     />
                                 </div>
                                 {/* Sort Button - Desktop & Mobile */}
                                 <button 
                                     onClick={toggleSortOrder}
-                                    className="bg-gray-500/10 text-text-secondary font-bold px-3 py-2 rounded-lg flex items-center gap-1 hover:bg-gray-500/20 flex-shrink-0 text-sm w-full sm:w-auto justify-center sm:justify-start"
+                                    className="bg-gray-500/10 text-text-secondary font-bold px-4 py-2.5 rounded-lg flex items-center gap-2 hover:bg-gray-500/20 transition-colors flex-shrink-0 text-sm w-full sm:w-auto justify-center sm:justify-start"
                                     title={`Urut ${sortOrder === 'asc' ? 'A-Z' : 'Z-A'}`}
                                 >
                                     {sortOrder === 'asc' ? <SortAscIcon /> : <SortDescIcon />}
@@ -518,6 +521,7 @@ const KosakataPage = () => {
                     </div>
                 </div>
                 
+                {/* ✅ PERBAIKAN: Main content dengan proper top margin */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 mt-8">
                     {/* ✅ PERBAIKAN: Tampilkan error hanya jika ada error dan bukan 404 */}
                     {error && <p className="text-center text-red-500">{error}</p>}
@@ -532,7 +536,8 @@ const KosakataPage = () => {
                         <div className="lg:grid lg:grid-cols-3 lg:gap-8">
                             {isDesktop && (
                                 <div className="lg:col-span-1">
-                                    <div className="lg:sticky lg:top-40 z-10">
+                                    {/* ✅ PERBAIKAN: Adjusted top position untuk detail panel */}
+                                    <div className="lg:sticky lg:top-48 z-10">
                                         <DetailPanel />
                                     </div>
                                 </div>
