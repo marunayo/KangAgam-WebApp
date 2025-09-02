@@ -250,7 +250,7 @@ const QuizPage = () => {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            className="flex flex-col h-full"
+            className="flex flex-col h-screen overflow-hidden"
         >
             {/* Header */}
             <div className="sticky top-0 z-10 bg-background border-b border-background">
@@ -269,79 +269,85 @@ const QuizPage = () => {
                 </div>
             </div>
 
-            {/* Error State */}
-            {error && (
-                <div className="flex-grow flex items-center justify-center">
-                    <div className="text-center max-w-md mx-auto px-4">
-                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-6">
-                            <div className="text-red-600 dark:text-red-400 text-6xl mb-4">⚠️</div>
-                            <h2 className="text-xl font-bold text-red-800 dark:text-red-200 mb-2">
-                                Terjadi Kesalahan
-                            </h2>
-                            <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
-                            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                                <button 
-                                    onClick={() => window.location.reload()} 
-                                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-bold"
-                                >
-                                    Coba Lagi
-                                </button>
-                                <Link 
-                                    to="/home" 
-                                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 font-bold text-center"
-                                >
-                                    Kembali ke Beranda
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Main Content */}
-            {!error && (
-                <>
-                    {/* Not enough data state */}
-                    {quizState === 'not_enough_data' && (
-                        <div className="flex-grow flex items-center justify-center">
-                            <div className="text-center max-w-md mx-auto px-4">
-                                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-6">
-                                    <div className="text-yellow-600 dark:text-yellow-400 text-6xl mb-4">📝</div>
-                                    <h2 className="text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-2">
-                                        Kuis Tidak Tersedia
-                                    </h2>
-                                    <p className="text-yellow-600 dark:text-yellow-400 mb-4">
-                                        Kuis membutuhkan minimal 4 kosakata. Topik ini belum memiliki cukup kosakata untuk membuat kuis.
-                                    </p>
-                                    <Link 
-                                        to={`/topik/${topicId}`} 
-                                        className="bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 font-bold inline-block"
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto">
+                {/* Error State */}
+                {error && (
+                    <div className="flex items-center justify-center h-full">
+                        <div className="text-center max-w-md mx-auto px-4">
+                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-6">
+                                <div className="text-red-600 dark:text-red-400 text-6xl mb-4">⚠️</div>
+                                <h2 className="text-xl font-bold text-red-800 dark:text-red-200 mb-2">
+                                    Terjadi Kesalahan
+                                </h2>
+                                <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+                                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                                    <button 
+                                        onClick={() => window.location.reload()} 
+                                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-bold"
                                     >
-                                        Kembali ke Topik
+                                        Coba Lagi
+                                    </button>
+                                    <Link 
+                                        to="/home" 
+                                        className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 font-bold text-center"
+                                    >
+                                        Kembali ke Beranda
                                     </Link>
                                 </div>
                             </div>
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    {/* Playing state */}
-                    {quizState === 'playing' && currentQuestion && (
-                        <div className="flex-grow flex items-center justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                            <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
-                                <h3 className="text-2xl font-semibold text-text-secondary text-center">
+                {/* Main Content */}
+                {!error && (
+                    <>
+                        {/* Not enough data state */}
+                        {quizState === 'not_enough_data' && (
+                            <div className="flex items-center justify-center h-full">
+                                <div className="text-center max-w-md mx-auto px-4">
+                                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-6">
+                                        <div className="text-yellow-600 dark:text-yellow-400 text-6xl mb-4">📝</div>
+                                        <h2 className="text-xl font-bold text-yellow-800 dark:text-yellow-200 mb-2">
+                                            Kuis Tidak Tersedia
+                                        </h2>
+                                        <p className="text-yellow-600 dark:text-yellow-400 mb-4">
+                                            Kuis membutuhkan minimal 4 kosakata. Topik ini belum memiliki cukup kosakata untuk membuat kuis.
+                                        </p>
+                                        <Link 
+                                            to={`/topik/${topicId}`} 
+                                            className="bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 font-bold inline-block"
+                                        >
+                                            Kembali ke Topik
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Playing state */}
+                        {quizState === 'playing' && currentQuestion && (
+                            <div className="flex flex-col items-center py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+                                <h3 className="text-2xl font-semibold text-text-secondary text-center mb-6">
                                     Dengarkan pertanyaan melalui audio ini
                                 </h3>
+                                
+                                <ul className="list-disc text-text-secondary mb-6 pl-6">
+                                    <li>Klik icon volume untuk mendengarkan kosakata</li>
+                                    <li>Jika salah 3 kali di pertanyaan yang sama, akan berganti ke pertanyaan selanjutnya</li>
+                                </ul>
                                 
                                 <motion.button 
                                     whileHover={{ scale: 1.1 }} 
                                     whileTap={{ scale: 0.9 }} 
                                     onClick={() => playQuestionAudio(questionAudio)} 
-                                    className="my-6 w-32 h-32 bg-accent/20 text-accent rounded-2xl flex items-center justify-center text-5xl shadow-lg"
+                                    className="mb-6 w-32 h-32 bg-accent/20 text-accent rounded-2xl flex items-center justify-center text-5xl shadow-lg"
                                 >
                                     🔊
                                 </motion.button>
                                 
-                                <div className="flex justify-center items-center gap-4">
+                                <div className="flex justify-center items-center gap-4 mb-8">
                                     <p className="font-bold text-text">Nilai kamu: </p>
                                     <div className="bg-secondary/20 text-secondary font-bold px-4 py-2 rounded-lg">
                                         Benar: {score}
@@ -351,7 +357,7 @@ const QuizPage = () => {
                                     </div>
                                 </div>
                                 
-                                <hr className="w-full my-8 border-background-secondary" />
+                                <hr className="w-full mb-8 border-background-secondary" />
                                 
                                 <div className="w-full">
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
@@ -377,10 +383,10 @@ const QuizPage = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                </>
-            )}
+                        )}
+                    </>
+                )}
+            </div>
 
             {/* Quiz Finished Modal */}
             <AnimatePresence>
