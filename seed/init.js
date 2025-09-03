@@ -22,32 +22,32 @@ while (!db.isMaster().ismaster) {
 }
 print('STATUS: Node ini sekarang adalah PRIMARY. Melanjutkan proses seeding...');
 
-// Setelah menjadi primary, baru lakukan seeding data
-const targetDB = db.getSiblingDB('KangAgam-DB');
+// // Setelah menjadi primary, baru lakukan seeding data
+// const targetDB = db.getSiblingDB('KangAgam-DB');
 
-// Seeding admin (hanya jika koleksi kosong untuk mencegah duplikasi)
-if (targetDB.admins.countDocuments() === 0) {
-    targetDB.admins.insertOne({
-        adminName: "Super Admin",
-        adminEmail: "superadmin@email.com",
-        adminPassword: "$2b$10$0LCI5PpPuHc129b23FXkpuosZSvinQhpBmMY6SUH5MeDNw0KbcmjO",
-        role: "superadmin"
-    });
-    print('Seeding "admins" collection selesai.');
-} else {
-    print('"admins" collection sudah berisi data, seeding dilewati.');
-}
+// // Seeding admin (hanya jika koleksi kosong untuk mencegah duplikasi)
+// if (targetDB.admins.countDocuments() === 0) {
+//     targetDB.admins.insertOne({
+//         adminName: "Super Admin",
+//         adminEmail: "superadmin@email.com",
+//         adminPassword: "$2b$10$0LCI5PpPuHc129b23FXkpuosZSvinQhpBmMY6SUH5MeDNw0KbcmjO",
+//         role: "superadmin"
+//     });
+//     print('Seeding "admins" collection selesai.');
+// } else {
+//     print('"admins" collection sudah berisi data, seeding dilewati.');
+// }
 
-// Seeding bahasa (hanya jika koleksi kosong)
-if (targetDB.languages.countDocuments() === 0) {
-    targetDB.languages.insertMany([
-        { languageName: "Indonesia", languageCode: "id" },
-        { languageName: "Sunda", languageCode: "su" },
-        { languageName: "Inggris", languageCode: "en" }
-    ]);
-    print('Seeding "languages" collection selesai.');
-} else {
-    print('"languages" collection sudah berisi data, seeding dilewati.');
-}
+// // Seeding bahasa (hanya jika koleksi kosong)
+// if (targetDB.languages.countDocuments() === 0) {
+//     targetDB.languages.insertMany([
+//         { languageName: "Indonesia", languageCode: "id" },
+//         { languageName: "Sunda", languageCode: "su" },
+//         { languageName: "Inggris", languageCode: "en" }
+//     ]);
+//     print('Seeding "languages" collection selesai.');
+// } else {
+//     print('"languages" collection sudah berisi data, seeding dilewati.');
+// }
 
 print('🚀 Proses inisialisasi dan seeding database selesai sepenuhnya.');

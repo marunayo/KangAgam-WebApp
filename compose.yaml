@@ -10,7 +10,7 @@ services:
       - ./service/.env
     volumes:
       # Memasang volume 'uploads' ke direktori /app/public
-      - uploads:/app/public
+      - ./uploads:/app/public
     
     # PERBAIKAN UTAMA: Menjalankan container sebagai user 'root'
     # Ini akan memberikan aplikasi izin penuh untuk menulis file di dalam volume.
