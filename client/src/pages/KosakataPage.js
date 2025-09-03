@@ -16,6 +16,136 @@ import { getTopicById } from '../services/topicService';
 // ✅ Import komponen NotFound untuk error handling
 import NotFoundPage from '../components/NotFoundPage';
 
+// ====================================================================
+// SMART SORTING FUNCTIONS (Imported from ManageWordsPage)
+// ====================================================================
+
+// Core number words untuk deteksi (minimal mapping)
+const coreNumbers = {
+    // Indonesia
+    'nol': 0, 'satu': 1, 'dua': 2, 'tiga': 3, 'empat': 4, 'lima': 5,
+    'enam': 6, 'tujuh': 7, 'delapan': 8, 'sembilan': 9, 'sepuluh': 10,
+    
+    // Sunda  
+    'hiji': 1, 'tilu': 3, 'opat': 4, 'genep': 6, 'dalapan': 8, 'salapan': 9, 'sapuluh': 10,
+    
+    // English
+    'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+    'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10
+};
+
+// Fungsi untuk mendeteksi dan mengekstrak nilai numerik dari string
+const extractNumericValue = (str) => {
+    if (!str || typeof str !== 'string') return null;
+    
+    const cleanStr = str.toLowerCase().trim();
+    
+    // 1. Cek direct mapping
+    if (coreNumbers[cleanStr] !== undefined) {
+        return coreNumbers[cleanStr];
+    }
+    
+    // 2. Cek digit angka (1, 2, 3, dst)
+    if (/^\d+$/.test(cleanStr)) {
+        return parseInt(cleanStr);
+    }
+    
+    // 3. Deteksi pola compound numbers Indonesia
+    const indonesianPattern = /^(satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan)[\s]+(puluh|belas)[\s]*(satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan)?$/;
+    if (indonesianPattern.test(cleanStr)) {
+        return parseIndonesianNumber(cleanStr);
+    }
+    
+    // 4. Deteksi pola English compound
+    const englishPattern = /^(twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)[\s\-]?(one|two|three|four|five|six|seven|eight|nine)?$/;
+    if (englishPattern.test(cleanStr)) {
+        return parseEnglishNumber(cleanStr);
+    }
+    
+    // 5. Deteksi teens dalam English
+    const englishTeens = {
+        'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15,
+        'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19
+    };
+    if (englishTeens[cleanStr]) {
+        return englishTeens[cleanStr];
+    }
+    
+    return null;
+};
+
+// Parser untuk angka Indonesia compound
+const parseIndonesianNumber = (str) => {
+    const parts = str.split(/\s+/);
+    let result = 0;
+    
+    for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        
+        if (part === 'puluh') {
+            const prevPart = parts[i - 1];
+            if (coreNumbers[prevPart]) {
+                result += coreNumbers[prevPart] * 10;
+            }
+        } else if (part === 'belas') {
+            const prevPart = parts[i - 1];
+            if (coreNumbers[prevPart]) {
+                result = 10 + coreNumbers[prevPart];
+            }
+        } else if (i === parts.length - 1 && coreNumbers[part]) {
+            // Angka satuan di akhir (misal: "dua puluh satu")
+            result += coreNumbers[part];
+        }
+    }
+    
+    return result > 0 ? result : null;
+};
+
+// Parser untuk angka English compound  
+const parseEnglishNumber = (str) => {
+    const tensMap = {
+        'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50,
+        'sixty': 60, 'seventy': 70, 'eighty': 80, 'ninety': 90
+    };
+    
+    const parts = str.split(/[\s\-]+/);
+    let result = 0;
+    
+    for (const part of parts) {
+        if (tensMap[part]) {
+            result += tensMap[part];
+        } else if (coreNumbers[part]) {
+            result += coreNumbers[part];
+        }
+    }
+    
+    return result > 0 ? result : null;
+};
+
+// Fungsi untuk mendeteksi apakah ini topik angka
+const isNumberTopic = (entries, sampleSize = 5, language = 'id') => {
+    if (!entries || entries.length === 0) return false;
+    
+    const sample = entries.slice(0, Math.min(sampleSize, entries.length));
+    const numberCount = sample.filter(entry => {
+        const vocab = findVocab(entry, language);
+        return vocab && extractNumericValue(vocab.vocab) !== null;
+    }).length;
+    
+    // Jika > 70% adalah angka, anggap sebagai topik angka
+    return sample.length > 0 && (numberCount / sample.length) > 0.7;
+};
+
+// Helper function untuk mencari vocab
+const findVocab = (entry, lang) => {
+    if (!entry || !entry.entryVocabularies) return null;
+    return entry.entryVocabularies.find(v => v.language.languageCode === lang) || entry.entryVocabularies[0];
+};
+
+// ====================================================================
+// COMPONENT HOOKS & ICONS
+// ====================================================================
+
 // Hook untuk mendeteksi ukuran layar
 const useMediaQuery = (query) => {
     const [matches, setMatches] = useState(window.matchMedia(query).matches);
@@ -277,11 +407,6 @@ const KosakataPage = () => {
         });
     };
 
-    const findVocab = (entry, lang) => {
-        if (!entry || !entry.entryVocabularies) return null;
-        return entry.entryVocabularies.find(v => v.language.languageCode === lang) || entry.entryVocabularies[0];
-    };
-    
     const getTranslatedTopicName = () => {
         if (!topicInfo || !Array.isArray(topicInfo.topicName)) return 'Memuat...';
         const currentTranslation = topicInfo.topicName.find(t => t.lang === i18n.language);
@@ -290,21 +415,41 @@ const KosakataPage = () => {
         return fallback ? fallback.value : 'Judul Topik';
     };
 
-    // Filter dan sort entries berdasarkan kosakata dalam bahasa yang aktif
+    // ✅ INTELLIGENT SORTING: Filter dan sort entries dengan deteksi angka otomatis
     const filteredAndSortedEntries = entries
         .filter(entry => {
             const vocab = findVocab(entry, i18n.language);
             return vocab && vocab.vocab.toLowerCase().includes(searchTerm.toLowerCase());
         })
         .sort((a, b) => {
-            const vocabA = findVocab(a, i18n.language)?.vocab.toLowerCase() || '';
-            const vocabB = findVocab(b, i18n.language)?.vocab.toLowerCase() || '';
+            const vocabA = findVocab(a, i18n.language)?.vocab || '';
+            const vocabB = findVocab(b, i18n.language)?.vocab || '';
             
-            if (sortOrder === 'asc') {
-                return vocabA.localeCompare(vocabB);
-            } else {
-                return vocabB.localeCompare(vocabA);
+            // Deteksi apakah ini topik angka berdasarkan sample entries
+            const isNumericTopic = isNumberTopic(entries, 5, i18n.language);
+            
+            if (isNumericTopic) {
+                // Untuk topik angka, prioritaskan sorting numerik
+                const numA = extractNumericValue(vocabA);
+                const numB = extractNumericValue(vocabB);
+                
+                // Kedua adalah angka
+                if (numA !== null && numB !== null) {
+                    return sortOrder === 'asc' ? numA - numB : numB - numA;
+                }
+                
+                // Salah satu bukan angka, angka diprioritaskan
+                if (numA !== null && numB === null) {
+                    return sortOrder === 'asc' ? -1 : 1;
+                }
+                if (numA === null && numB !== null) {
+                    return sortOrder === 'asc' ? 1 : -1;
+                }
             }
+            
+            // Fallback ke alphabetical sorting
+            const result = vocabA.toLowerCase().localeCompare(vocabB.toLowerCase());
+            return sortOrder === 'asc' ? result : -result;
         });
 
     const totalPages = Math.ceil(filteredAndSortedEntries.length / ENTRIES_PER_PAGE);
@@ -509,7 +654,10 @@ const KosakataPage = () => {
                                         type="text"
                                         placeholder="Cari kosakata..."
                                         value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onChange={(e) => {
+                                            setSearchTerm(e.target.value);
+                                            setCurrentPage(1); // Reset ke halaman pertama saat search
+                                        }}
                                         className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-background-secondary text-text focus:ring-2 focus:ring-primary focus:border-primary shadow-sm transition-all duration-200"
                                     />
                                 </div>
