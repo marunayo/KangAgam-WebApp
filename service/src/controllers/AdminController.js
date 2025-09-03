@@ -102,44 +102,51 @@ export const getAllAdmins = async (req, res) => {
 };
 
 /**
- * @desc    Memperbarui (Update) data admin
- * @route   PUT /api/admins/:id
+ * @desc Memperbarui (Update) data admin
+ * @route PUT /api/admins/:id
  */
 export const updateAdmin = async (req, res) => {
     try {
-        const { id: targetAdminId } = req.params; // ID admin yang akan di-update
-        const { adminName, adminEmail, role } = req.body; // Ambil 'role' dari body
-        
-        const loggedInAdmin = req.admin; // Admin yang sedang login
+        const { id: targetAdminId } = req.params;
+        const { adminName, adminEmail, role, newPassword, confirmPassword } = req.body;
+        const loggedInAdmin = req.admin;
 
-        // Otorisasi: Izinkan jika superadmin ATAU jika mengedit diri sendiri
+        // Otorisasi: Izinkan jika superadmin atau mengedit diri sendiri
         if (loggedInAdmin.role !== 'superadmin' && loggedInAdmin._id.toString() !== targetAdminId) {
             return res.status(403).json({ message: "Akses ditolak: Anda hanya dapat mengedit data diri sendiri." });
         }
 
-        const adminToUpdate = await Admin.findById(targetAdminId);
+        const adminToUpdate = await Admin.findById(targetAdminId).select('+adminPassword');
 
-        if (adminToUpdate) {
-            // Update nama dan email (jika ada di body)
-            adminToUpdate.adminName = adminName || adminToUpdate.adminName;
-            adminToUpdate.adminEmail = adminEmail || adminToUpdate.adminEmail;
-
-            // --- ✅ Logika Baru untuk Perubahan Role ---
-            // Hanya superadmin yang bisa mengubah role
-            if (loggedInAdmin.role === 'superadmin' && role) {
-                // Pengaman: Superadmin tidak boleh menurunkan perannya sendiri
-                if (loggedInAdmin._id.toString() === targetAdminId && role !== 'superadmin') {
-                    return res.status(400).json({ message: 'Superadmin tidak dapat menurunkan perannya sendiri.' });
-                }
-                adminToUpdate.role = role;
-            }
-            // -----------------------------------------
-            
-            const updatedAdmin = await adminToUpdate.save();
-            res.status(200).json({ message: "Admin berhasil diperbarui.", data: updatedAdmin });
-        } else {
-            res.status(404).json({ message: "Admin tidak ditemukan." });
+        if (!adminToUpdate) {
+            return res.status(404).json({ message: "Admin tidak ditemukan." });
         }
+
+        // Update nama dan email
+        adminToUpdate.adminName = adminName || adminToUpdate.adminName;
+        adminToUpdate.adminEmail = adminEmail || adminToUpdate.adminEmail;
+
+        // Update role (hanya superadmin)
+        if (loggedInAdmin.role === 'superadmin' && role) {
+            if (loggedInAdmin._id.toString() === targetAdminId && role !== 'superadmin') {
+                return res.status(400).json({ message: 'Superadmin tidak dapat menurunkan perannya sendiri.' });
+            }
+            adminToUpdate.role = role;
+        }
+
+        // Update password jika disediakan
+        if (newPassword && confirmPassword) {
+            if (newPassword !== confirmPassword) {
+                return res.status(400).json({ message: "Password baru dan konfirmasi password tidak cocok." });
+            }
+            if (newPassword.length < 6) {
+                return res.status(400).json({ message: "Password baru harus minimal 6 karakter." });
+            }
+            adminToUpdate.adminPassword = newPassword; // Akan di-hash otomatis
+        }
+
+        const updatedAdmin = await adminToUpdate.save();
+        res.status(200).json({ message: "Admin berhasil diperbarui.", data: updatedAdmin });
     } catch (error) {
         res.status(500).json({ message: "Gagal memperbarui admin.", error: error.message });
     }
@@ -177,39 +184,50 @@ export const deleteAdmin = async (req, res) => {
 };
 
 /**
- * @desc Mengganti password admin
+ * @desc Mengganti password admin tanpa memerlukan password lama
  * @route PUT /api/admins/:id/change-password
- * @access Private/Admin
+ * @access Private/Admin (Superadmin atau admin mengedit dirinya sendiri)
  * @param {string} id - ID admin yang ingin diubah passwordnya
- * @param {string} oldPassword - Password lama
- * @param {string} newPassword - Password baru  
+ * @param {string} newPassword - Password baru
+ * @param {string} confirmPassword - Konfirmasi password baru
  */
 export const changePassword = async (req, res) => {
     try {
         const { id } = req.params;
-        const { oldPassword, newPassword } = req.body;
+        const { newPassword, confirmPassword } = req.body;
+        const loggedInAdmin = req.admin; // Admin yang sedang login
 
-        if (!oldPassword || !newPassword) {
-            return res.status(400).json({ message: "Old password and new password are required." });
+        // Validasi input
+        if (!newPassword || !confirmPassword) {
+            return res.status(400).json({ message: "Password baru dan konfirmasi password diperlukan." });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ message: "Password baru dan konfirmasi password tidak cocok." });
+        }
+
+        // Otorisasi: Hanya superadmin atau admin yang mengedit dirinya sendiri
+        if (loggedInAdmin.role !== 'superadmin' && loggedInAdmin._id.toString() !== id) {
+            return res.status(403).json({ message: "Akses ditolak: Anda hanya dapat mengubah password diri sendiri." });
         }
 
         const admin = await Admin.findById(id).select('+adminPassword');
 
         if (!admin) {
-            return res.status(404).json({ message: "Admin not found." });
+            return res.status(404).json({ message: "Admin tidak ditemukan." });
         }
 
-        const isMatch = await admin.comparePassword(oldPassword);
-        if (!isMatch) {
-            return res.status(401).json({ message: "Old password is incorrect." });
+        // Validasi panjang password (opsional, sesuaikan dengan kebutuhan)
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: "Password baru harus minimal 6 karakter." });
         }
 
         admin.adminPassword = newPassword; // Password akan di-hash otomatis oleh middleware 'pre' pada model
         await admin.save();
 
-        res.status(200).json({ message: "Password updated successfully." });
+        res.status(200).json({ message: "Password berhasil diperbarui." });
     } catch (error) {
-        res.status(500).json({ message: "Failed to change password.", error: error.message });
+        res.status(500).json({ message: "Gagal mengubah password.", error: error.message });
     }
 };
 
