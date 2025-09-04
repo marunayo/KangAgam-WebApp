@@ -1,9 +1,11 @@
+// ManageTopicsPage.js (Modified)
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Pagination from '../../components/ui/Pagination';
 import TopicFormModal from '../../components/admin/TopicFormModal';
 import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import ManageTopicDetailModal from '../../components/admin/ManageTopicDetailModal';
+import StatusModal from '../../components/admin/StatusModal'; // Import the new StatusModal
 import { getTopics, addTopic, updateTopic, deleteTopic } from '../../services/topicService';
 import { useAuth } from '../../context/AuthContext';
 import LoadingIndicator from '../../components/ui/LoadingIndicator';
@@ -28,6 +30,7 @@ const ManageTopicsPage = () => {
     const [detailModalTopic, setDetailModalTopic] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedTopics, setSelectedTopics] = useState([]);
+    const [statusModal, setStatusModal] = useState({ isOpen: false, message: '', type: 'success' }); // New state for status modal
 
     const fetchTopics = async () => {
         try {
@@ -50,7 +53,7 @@ const ManageTopicsPage = () => {
     const handleFormSubmit = async (data) => {
         const token = user?.token;
         if (!token) {
-            alert("Otentikasi gagal. Silakan login kembali.");
+            setStatusModal({ isOpen: true, message: "Otentikasi gagal. Silakan login kembali.", type: 'error' });
             return;
         }
         const isMultiAdd = Array.isArray(data);
@@ -58,16 +61,16 @@ const ManageTopicsPage = () => {
         try {
             if (formModalState.mode === 'add') {
                 await Promise.all(submissions.map(formData => addTopic(formData, token)));
-                alert(`Berhasil menambahkan ${submissions.length} topik!`);
+                setStatusModal({ isOpen: true, message: `Berhasil menambahkan ${submissions.length} topik!`, type: 'success' });
             } else if (formModalState.mode === 'edit') {
                 await updateTopic(formModalState.data._id, submissions[0], token);
-                alert('Topik berhasil diperbarui!');
+                setStatusModal({ isOpen: true, message: 'Topik berhasil diperbarui!', type: 'success' });
             }
             fetchTopics();
         } catch (err) {
             // ✅ [PROBLEM-2] Menampilkan pesan error yang lebih spesifik dari API
             const errorMessage = err.response?.data?.message || 'Terjadi kesalahan pada server.';
-            alert(`Gagal: ${errorMessage}`);
+            setStatusModal({ isOpen: true, message: `Gagal: ${errorMessage}`, type: 'error' });
         } finally {
             setFormModalState({ isOpen: false, mode: 'add', data: null });
             setDetailModalTopic(null);
@@ -78,17 +81,17 @@ const ManageTopicsPage = () => {
         if (!deleteModalTopic) return;
         const token = user?.token;
         if (!token) {
-            alert("Otentikasi gagal. Silakan login kembali.");
+            setStatusModal({ isOpen: true, message: "Otentikasi gagal. Silakan login kembali.", type: 'error' });
             return;
         }
         try {
             const idsToDelete = selectedTopics.length > 0 ? selectedTopics : [deleteModalTopic._id];
             await Promise.all(idsToDelete.map(id => deleteTopic(id, token)));
-            alert(`Berhasil menghapus ${idsToDelete.length} topik!`);
+            setStatusModal({ isOpen: true, message: `Berhasil menghapus ${idsToDelete.length} topik!`, type: 'success' });
             fetchTopics();
             setSelectedTopics([]);
         } catch (err) {
-            alert('Gagal menghapus topik.');
+            setStatusModal({ isOpen: true, message: 'Gagal menghapus topik.', type: 'error' });
         } finally {
             setDeleteModalTopic(null);
             setDetailModalTopic(null);
@@ -264,6 +267,12 @@ const ManageTopicsPage = () => {
                 onClose={() => setDetailModalTopic(null)}
                 onEdit={() => setFormModalState({ isOpen: true, mode: 'edit', data: detailModalTopic })}
                 onDelete={() => setDeleteModalTopic(detailModalTopic)}
+            />
+            <StatusModal
+                isOpen={statusModal.isOpen}
+                onClose={() => setStatusModal({ ...statusModal, isOpen: false })}
+                message={statusModal.message}
+                type={statusModal.type}
             />
         </div>
     );

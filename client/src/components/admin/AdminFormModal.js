@@ -45,7 +45,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
         setError('');
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         // Validasi client-side
@@ -65,14 +65,37 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
             }
         }
 
-        const { confirmPassword, ...dataToSubmit } = formData;
-
-        if (mode === 'edit' && !dataToSubmit.adminPassword) {
-            delete dataToSubmit.adminPassword;
+        if (mode === 'edit' && formData.adminPassword && formData.adminPassword !== formData.confirmPassword) {
+            setError('Kata sandi baru dan konfirmasi kata sandi tidak cocok.');
+            return;
         }
 
-        console.log('Submitting form data:', dataToSubmit);
-        onSubmit(dataToSubmit);
+        try {
+            const dataToSubmit = {
+                adminName: formData.adminName,
+                adminEmail: formData.adminEmail,
+                role: formData.role,
+            };
+
+            if (mode === 'add') {
+                dataToSubmit.adminPassword = formData.adminPassword;
+                await onSubmit(dataToSubmit); // Panggil createAdmin
+            } else {
+                // Jika ada perubahan password, panggil endpoint changePassword
+                if (formData.adminPassword && formData.confirmPassword) {
+                    await onSubmit({
+                        ...dataToSubmit,
+                        newPassword: formData.adminPassword,
+                        confirmPassword: formData.confirmPassword,
+                        isPasswordChange: true, // Tanda bahwa ini update password
+                    });
+                } else {
+                    await onSubmit(dataToSubmit); // Panggil updateAdmin
+                }
+            }
+        } catch (err) {
+            setError(err.message || 'Terjadi kesalahan saat menyimpan data.');
+        }
     };
 
     return (
@@ -152,7 +175,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                                             htmlFor="adminPassword"
                                             className="block text-sm font-medium text-gray-600 mb-1"
                                         >
-                                            {mode === 'edit' ? 'Kata sandi Baru (Opsional)' : 'Kata sandi'}
+                                            {mode === 'edit' ? 'Kata Sandi Baru (Opsional)' : 'Kata Sandi'}
                                         </label>
                                         <input
                                             type="password"
@@ -169,7 +192,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                                             htmlFor="confirmPassword"
                                             className="block text-sm font-medium text-gray-600 mb-1"
                                         >
-                                            Konfirmasi kata sandi
+                                            Konfirmasi Kata Sandi
                                         </label>
                                         <input
                                             type="password"

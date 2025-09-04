@@ -1,3 +1,4 @@
+// ManageWordsPage.js (Complete with Intelligent Number Sorting)
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Pagination from '../../components/ui/Pagination';
@@ -6,6 +7,7 @@ import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
 import ManageWordDetailModal from '../../components/admin/ManageWordDetailModal';
 import ImageModal from '../../components/admin/ImageModal';
 import AudioPlayerModal from '../../components/admin/AudioPlayerModal';
+import StatusModal from '../../components/admin/StatusModal';
 import { getEntriesByTopicId, addEntry, updateEntry, deleteEntry } from '../../services/entryService';
 import { getTopicById } from '../../services/topicService';
 import { useAuth } from '../../context/AuthContext';
@@ -13,11 +15,178 @@ import LoadingIndicator from '../../components/ui/LoadingIndicator';
 
 const ITEMS_PER_PAGE = 7;
 
+// ====================================================================
+// SMART SORTING FUNCTIONS
+// ====================================================================
+
+// Core number words untuk deteksi (minimal mapping)
+const coreNumbers = {
+    // Indonesia
+    'nol': 0, 'satu': 1, 'dua': 2, 'tiga': 3, 'empat': 4, 'lima': 5,
+    'enam': 6, 'tujuh': 7, 'delapan': 8, 'sembilan': 9, 'sepuluh': 10,
+    
+    // Sunda  
+    'hiji': 1, 'tilu': 3, 'opat': 4, 'genep': 6, 'dalapan': 8, 'salapan': 9, 'sapuluh': 10,
+    
+    // English
+    'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+    'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10
+};
+
+// Fungsi untuk mendeteksi dan mengekstrak nilai numerik dari string
+const extractNumericValue = (str) => {
+    if (!str || typeof str !== 'string') return null;
+    
+    const cleanStr = str.toLowerCase().trim();
+    
+    // 1. Cek direct mapping
+    if (coreNumbers[cleanStr] !== undefined) {
+        return coreNumbers[cleanStr];
+    }
+    
+    // 2. Cek digit angka (1, 2, 3, dst)
+    if (/^\d+$/.test(cleanStr)) {
+        return parseInt(cleanStr);
+    }
+    
+    // 3. Deteksi pola compound numbers Indonesia
+    const indonesianPattern = /^(satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan)[\s]+(puluh|belas)[\s]*(satu|dua|tiga|empat|lima|enam|tujuh|delapan|sembilan)?$/;
+    if (indonesianPattern.test(cleanStr)) {
+        return parseIndonesianNumber(cleanStr);
+    }
+    
+    // 4. Deteksi pola English compound
+    const englishPattern = /^(twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)[\s\-]?(one|two|three|four|five|six|seven|eight|nine)?$/;
+    if (englishPattern.test(cleanStr)) {
+        return parseEnglishNumber(cleanStr);
+    }
+    
+    // 5. Deteksi teens dalam English
+    const englishTeens = {
+        'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15,
+        'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19
+    };
+    if (englishTeens[cleanStr]) {
+        return englishTeens[cleanStr];
+    }
+    
+    return null;
+};
+
+// Parser untuk angka Indonesia compound
+const parseIndonesianNumber = (str) => {
+    const parts = str.split(/\s+/);
+    let result = 0;
+    
+    for (let i = 0; i < parts.length; i++) {
+        const part = parts[i];
+        
+        if (part === 'puluh') {
+            const prevPart = parts[i - 1];
+            if (coreNumbers[prevPart]) {
+                result += coreNumbers[prevPart] * 10;
+            }
+        } else if (part === 'belas') {
+            const prevPart = parts[i - 1];
+            if (coreNumbers[prevPart]) {
+                result = 10 + coreNumbers[prevPart];
+            }
+        } else if (i === parts.length - 1 && coreNumbers[part]) {
+            // Angka satuan di akhir (misal: "dua puluh satu")
+            result += coreNumbers[part];
+        }
+    }
+    
+    return result > 0 ? result : null;
+};
+
+// Parser untuk angka English compound  
+const parseEnglishNumber = (str) => {
+    const tensMap = {
+        'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50,
+        'sixty': 60, 'seventy': 70, 'eighty': 80, 'ninety': 90
+    };
+    
+    const parts = str.split(/[\s\-]+/);
+    let result = 0;
+    
+    for (const part of parts) {
+        if (tensMap[part]) {
+            result += tensMap[part];
+        } else if (coreNumbers[part]) {
+            result += coreNumbers[part];
+        }
+    }
+    
+    return result > 0 ? result : null;
+};
+
+// Fungsi untuk mendeteksi apakah ini topik angka
+const isNumberTopic = (entries, sampleSize = 5) => {
+    if (!entries || entries.length === 0) return false;
+    
+    const sample = entries.slice(0, Math.min(sampleSize, entries.length));
+    const numberCount = sample.filter(entry => {
+        const vocab = findVocab(entry, 'id');
+        return extractNumericValue(vocab) !== null;
+    }).length;
+    
+    // Jika > 70% adalah angka, anggap sebagai topik angka
+    return sample.length > 0 && (numberCount / sample.length) > 0.7;
+};
+
+// Main sorting function
+const intelligentSort = (a, b, order = 'asc', allEntries = []) => {
+    const vocabA = findVocab(a, 'id');
+    const vocabB = findVocab(b, 'id');
+    
+    // Deteksi apakah ini topik angka
+    const isNumericTopic = isNumberTopic(allEntries);
+    
+    if (isNumericTopic) {
+        // Untuk topik angka, prioritaskan sorting numerik
+        const numA = extractNumericValue(vocabA);
+        const numB = extractNumericValue(vocabB);
+        
+        // Kedua adalah angka
+        if (numA !== null && numB !== null) {
+            return order === 'asc' ? numA - numB : numB - numA;
+        }
+        
+        // Salah satu bukan angka, angka diprioritaskan
+        if (numA !== null && numB === null) {
+            return order === 'asc' ? -1 : 1;
+        }
+        if (numA === null && numB !== null) {
+            return order === 'asc' ? 1 : -1;
+        }
+    }
+    
+    // Fallback ke alphabetical sorting
+    const result = vocabA.toLowerCase().localeCompare(vocabB.toLowerCase());
+    return order === 'asc' ? result : -result;
+};
+
+// Helper function (unchanged)
+const findVocab = (entry, lang) => {
+    if (!entry || !entry.entryVocabularies) return 'N/A';
+    const vocab = entry.entryVocabularies.find(v => v.language.languageCode === lang);
+    return vocab ? vocab.vocab : 'N/A';
+};
+
+// ====================================================================
+// COMPONENT ICONS (unchanged)
+// ====================================================================
+
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
 const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>;
 const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>;
 const SortAscIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" /></svg>;
 const SortDescIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" /></svg>;
+
+// ====================================================================
+// MAIN COMPONENT
+// ====================================================================
 
 const ManageWordsPage = () => {
     const { user } = useAuth();
@@ -35,6 +204,7 @@ const ManageWordsPage = () => {
     const [deleteModalWord, setDeleteModalWord] = useState(null);
     const [detailModalWord, setDetailModalWord] = useState(null);
     const [selectedWords, setSelectedWords] = useState([]);
+    const [statusModal, setStatusModal] = useState({ isOpen: false, message: '', type: 'success' });
 
     const fetchData = useCallback(async () => {
         try {
@@ -61,7 +231,7 @@ const ManageWordsPage = () => {
     const handleFormSubmit = async (data) => {
         const token = user?.token;
         if (!token) {
-            alert("Otentikasi gagal. Silakan login kembali.");
+            setStatusModal({ isOpen: true, message: "Otentikasi gagal. Silakan login kembali.", type: 'error' });
             return;
         }
         const isMultiAdd = Array.isArray(data);
@@ -69,16 +239,15 @@ const ManageWordsPage = () => {
         try {
             if (formModalState.mode === 'add') {
                 await Promise.all(submissions.map(formData => addEntry(topicId, formData, token)));
-                alert(`Berhasil menambahkan ${submissions.length} kosakata!`);
+                setStatusModal({ isOpen: true, message: `Berhasil menambahkan ${submissions.length} kosakata!`, type: 'success' });
             } else if (formModalState.mode === 'edit') {
                 await updateEntry(topicId, formModalState.data._id, submissions[0], token);
-                alert('Kosakata berhasil diperbarui!');
+                setStatusModal({ isOpen: true, message: 'Kosakata berhasil diperbarui!', type: 'success' });
             }
             fetchData();
         } catch (err) {
-            // ✅ [PROBLEM-2] Menampilkan pesan error yang lebih spesifik dari API
             const errorMessage = err.response?.data?.message || 'Terjadi kesalahan pada server.';
-            alert(`Gagal: ${errorMessage}`);
+            setStatusModal({ isOpen: true, message: `Gagal: ${errorMessage}`, type: 'error' });
         } finally {
             setFormModalState({ isOpen: false, mode: 'add', data: null });
             setDetailModalWord(null);
@@ -89,17 +258,17 @@ const ManageWordsPage = () => {
         if (!deleteModalWord) return;
         const token = user?.token;
         if (!token) {
-            alert("Otentikasi gagal. Silakan login kembali.");
+            setStatusModal({ isOpen: true, message: "Otentikasi gagal. Silakan login kembali.", type: 'error' });
             return;
         }
         try {
             const idsToDelete = selectedWords.length > 0 ? selectedWords : [deleteModalWord._id];
             await Promise.all(idsToDelete.map(id => deleteEntry(topicId, id, token)));
-            alert(`Berhasil menghapus ${idsToDelete.length} kosakata!`);
+            setStatusModal({ isOpen: true, message: `Berhasil menghapus ${idsToDelete.length} kosakata!`, type: 'success' });
             fetchData();
             setSelectedWords([]);
         } catch (err) {
-            alert('Gagal menghapus kosakata.');
+            setStatusModal({ isOpen: true, message: 'Gagal menghapus kosakata.', type: 'error' });
         } finally {
             setDeleteModalWord(null);
             setDetailModalWord(null);
@@ -119,26 +288,49 @@ const ManageWordsPage = () => {
         setCurrentPage(1); // Reset ke halaman pertama setelah sorting
     };
 
-    const findVocab = (entry, lang) => {
-        if (!entry || !entry.entryVocabularies) return 'N/A';
-        const vocab = entry.entryVocabularies.find(v => v.language.languageCode === lang);
-        return vocab ? vocab.vocab : 'N/A';
-    };
-
-    // Filter dan sort words berdasarkan bahasa Indonesia
+    // ✅ INTELLIGENT SORTING - Filter dan sort dengan deteksi angka otomatis
     const filteredAndSortedWords = wordsData
-        .filter(entry =>
-            findVocab(entry, 'id').toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        .filter(entry => {
+            const searchLower = searchTerm.toLowerCase();
+            return findVocab(entry, 'id').toLowerCase().includes(searchLower) ||
+                   findVocab(entry, 'su').toLowerCase().includes(searchLower) ||
+                   findVocab(entry, 'en').toLowerCase().includes(searchLower);
+        })
         .sort((a, b) => {
-            const vocabA = findVocab(a, 'id').toLowerCase();
-            const vocabB = findVocab(b, 'id').toLowerCase();
+            const vocabA = findVocab(a, 'id');
+            const vocabB = findVocab(b, 'id');
             
-            if (sortOrder === 'asc') {
-                return vocabA.localeCompare(vocabB);
-            } else {
-                return vocabB.localeCompare(vocabA);
+            // Deteksi apakah ini topik angka
+            const sampleEntries = wordsData.slice(0, 5);
+            const numberCount = sampleEntries.filter(entry => {
+                const vocab = findVocab(entry, 'id');
+                return extractNumericValue(vocab) !== null;
+            }).length;
+            
+            const isNumericTopic = sampleEntries.length > 0 && (numberCount / sampleEntries.length) > 0.7;
+            
+            if (isNumericTopic) {
+                // Untuk topik angka, prioritaskan sorting numerik
+                const numA = extractNumericValue(vocabA);
+                const numB = extractNumericValue(vocabB);
+                
+                // Kedua adalah angka
+                if (numA !== null && numB !== null) {
+                    return sortOrder === 'asc' ? numA - numB : numB - numA;
+                }
+                
+                // Salah satu bukan angka, angka diprioritaskan
+                if (numA !== null && numB === null) {
+                    return sortOrder === 'asc' ? -1 : 1;
+                }
+                if (numA === null && numB !== null) {
+                    return sortOrder === 'asc' ? 1 : -1;
+                }
             }
+            
+            // Fallback ke alphabetical sorting
+            const result = vocabA.toLowerCase().localeCompare(vocabB.toLowerCase());
+            return sortOrder === 'asc' ? result : -result;
         });
 
     const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
@@ -299,6 +491,12 @@ const ManageWordsPage = () => {
                 onViewImage={() => setImageModalUrl(`/public${detailModalWord.entryImagePath}`)}
                 onPlayAudio={() => setAudioModalEntry(detailModalWord)}
                 findVocab={findVocab}
+            />
+            <StatusModal
+                isOpen={statusModal.isOpen}
+                onClose={() => setStatusModal({ ...statusModal, isOpen: false })}
+                message={statusModal.message}
+                type={statusModal.type}
             />
         </div>
     );

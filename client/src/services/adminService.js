@@ -74,6 +74,19 @@ const deleteAdmin = async (id, token) => {
     }
 };
 
+const changePassword = async (adminId, passwordData, token) => {
+    const response = await axios.put(
+        `${API_URL}/${adminId}/change-password`,
+        passwordData,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+    return response.data;
+};
+
 const adminService = {
     login,
     logout,
@@ -81,6 +94,7 @@ const adminService = {
     createAdmin,
     updateAdmin,
     deleteAdmin,
+    changePassword
 };
 
 export default adminService;
