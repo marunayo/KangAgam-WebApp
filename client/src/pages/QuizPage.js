@@ -336,7 +336,7 @@ const QuizPage = () => {
                                 </h3>
                                 
                                 <ul className="list-disc text-text-secondary mb-6 pl-6">
-                                    <li>Klik icon volume untuk mendengarkan kosakata</li>
+                                    <li>Klik ikon volume untuk mendengarkan kosakata</li>
                                     <li>Jika salah 3 kali di pertanyaan yang sama, akan berganti ke pertanyaan selanjutnya</li>
                                 </ul>
                                 

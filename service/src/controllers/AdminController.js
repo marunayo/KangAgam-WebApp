@@ -35,7 +35,7 @@ export const loginAdmin = async (req, res) => {
                 role: admin.role
             });
         } else {
-            res.status(401).json({ message: "Email atau password salah." });
+            res.status(401).json({ message: "Posel atau kata sandi salah." });
         }
     } catch (error) {
         res.status(500).json({ message: "Terjadi kesalahan saat login.", error: error.message });
