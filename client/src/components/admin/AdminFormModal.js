@@ -13,7 +13,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
         adminEmail: '',
         adminPassword: '',
         confirmPassword: '',
-        role: 'admin',
+        role: 'admin', // Default role set to 'admin'
     });
     const [error, setError] = useState('');
 
@@ -23,7 +23,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                 setFormData({
                     adminName: initialData.adminName || '',
                     adminEmail: initialData.adminEmail || '',
-                    role: initialData.role || 'admin',
+                    role: 'admin', // Always set to 'admin' instead of using initialData.role
                     adminPassword: '',
                     confirmPassword: '',
                 });
@@ -33,7 +33,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                     adminEmail: '',
                     adminPassword: '',
                     confirmPassword: '',
-                    role: 'admin',
+                    role: 'admin', // Default role
                 });
             }
             setError('');
@@ -49,8 +49,8 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
         e.preventDefault();
 
         // Validasi client-side
-        if (!formData.adminName || !formData.adminEmail || !formData.role) {
-            setError('Nama, email, dan role wajib diisi.');
+        if (!formData.adminName || !formData.adminEmail) {
+            setError('Nama dan email wajib diisi.');
             return;
         }
 
@@ -74,7 +74,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
             const dataToSubmit = {
                 adminName: formData.adminName,
                 adminEmail: formData.adminEmail,
-                role: formData.role,
+                role: 'admin', // Always send 'admin' as role
             };
 
             if (mode === 'add') {
@@ -153,22 +153,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                                         required
                                     />
                                 </div>
-                                <div>
-                                    <label htmlFor="role" className="block text-sm font-medium text-gray-600 mb-1">
-                                        Peran
-                                    </label>
-                                    <select
-                                        id="role"
-                                        name="role"
-                                        value={formData.role}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white"
-                                        required
-                                    >
-                                        <option value="admin">Admin</option>
-                                        <option value="superadmin">Superadmin</option>
-                                    </select>
-                                </div>
+                                {/* Role input field removed - role is automatically set to 'admin' */}
                                 <div className="space-y-4">
                                     <div>
                                         <label
