@@ -16,6 +16,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
         role: 'admin', // Default role set to 'admin'
     });
     const [error, setError] = useState('');
+    const [passwordTouched, setPasswordTouched] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -37,11 +38,19 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                 });
             }
             setError('');
+            setPasswordTouched(false); // Reset password touched state
         }
     }, [isOpen, mode, initialData]);
 
     const handleChange = (e) => {
-        setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+        const { name, value } = e.target;
+        
+        // Track if user actually interacts with password fields
+        if (name === 'adminPassword' || name === 'confirmPassword') {
+            setPasswordTouched(true);
+        }
+        
+        setFormData((prev) => ({ ...prev, [name]: value }));
         setError('');
     };
 
@@ -65,9 +74,17 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
             }
         }
 
-        if (mode === 'edit' && formData.adminPassword && formData.adminPassword !== formData.confirmPassword) {
-            setError('Kata sandi baru dan konfirmasi kata sandi tidak cocok.');
-            return;
+        // FIXED: Only validate password matching if user actually touched password fields
+        if (mode === 'edit' && passwordTouched) {
+            // If user interacted with password fields, both must be filled and match
+            if (!formData.adminPassword || !formData.confirmPassword) {
+                setError('Jika ingin mengubah password, kedua field password harus diisi.');
+                return;
+            }
+            if (formData.adminPassword !== formData.confirmPassword) {
+                setError('Kata sandi baru dan konfirmasi kata sandi tidak cocok.');
+                return;
+            }
         }
 
         try {
@@ -81,8 +98,8 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                 dataToSubmit.adminPassword = formData.adminPassword;
                 await onSubmit(dataToSubmit); // Panggil createAdmin
             } else {
-                // Jika ada perubahan password, panggil endpoint changePassword
-                if (formData.adminPassword && formData.confirmPassword) {
+                // FIXED: Only include password change if user actually touched password fields
+                if (passwordTouched && formData.adminPassword && formData.confirmPassword) {
                     await onSubmit({
                         ...dataToSubmit,
                         newPassword: formData.adminPassword,
@@ -90,6 +107,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                         isPasswordChange: true, // Tanda bahwa ini update password
                     });
                 } else {
+                    // Just update basic info without password change
                     await onSubmit(dataToSubmit); // Panggil updateAdmin
                 }
             }
@@ -168,8 +186,11 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                                             name="adminPassword"
                                             value={formData.adminPassword}
                                             onChange={handleChange}
+                                            onFocus={() => setPasswordTouched(true)}
                                             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg"
                                             required={mode === 'add'}
+                                            placeholder={mode === 'edit' ? 'Kosongkan jika tidak ingin mengubah password' : ''}
+                                            autoComplete="new-password"
                                         />
                                     </div>
                                     <div>
@@ -177,7 +198,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                                             htmlFor="confirmPassword"
                                             className="block text-sm font-medium text-gray-600 mb-1"
                                         >
-                                            Konfirmasi Kata Sandi
+                                            Konfirmasi Kata Sandi {mode === 'edit' ? '(Opsional)' : ''}
                                         </label>
                                         <input
                                             type="password"
@@ -185,11 +206,21 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                                             name="confirmPassword"
                                             value={formData.confirmPassword}
                                             onChange={handleChange}
+                                            onFocus={() => setPasswordTouched(true)}
                                             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg"
                                             required={mode === 'add'}
+                                            placeholder={mode === 'edit' ? 'Kosongkan jika tidak ingin mengubah password' : ''}
+                                            autoComplete="new-password"
                                         />
                                     </div>
                                 </div>
+                                {mode === 'edit' && (
+                                    <div className="bg-blue-50 p-3 rounded-lg">
+                                        <p className="text-sm text-blue-700">
+                                            <strong>Catatan:</strong> Kosongkan field password jika Anda hanya ingin mengubah nama atau email. Password hanya akan diubah jika Anda mengisi kedua field password.
+                                        </p>
+                                    </div>
+                                )}
                             </main>
                             <footer className="p-6 bg-gray-50 rounded-b-2xl">
                                 <button
