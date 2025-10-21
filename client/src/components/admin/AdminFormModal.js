@@ -13,7 +13,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
         adminEmail: '',
         adminPassword: '',
         confirmPassword: '',
-        role: 'admin', // Default role set to 'admin'
+        role: 'admin',
     });
     const [error, setError] = useState('');
     const [passwordTouched, setPasswordTouched] = useState(false);
@@ -24,7 +24,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                 setFormData({
                     adminName: initialData.adminName || '',
                     adminEmail: initialData.adminEmail || '',
-                    role: 'admin', // Always set to 'admin' instead of using initialData.role
+                    role: initialData.role || 'admin', // FIXED: Preserve existing role
                     adminPassword: '',
                     confirmPassword: '',
                 });
@@ -34,18 +34,17 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                     adminEmail: '',
                     adminPassword: '',
                     confirmPassword: '',
-                    role: 'admin', // Default role
+                    role: 'admin', // Default role for new admins
                 });
             }
             setError('');
-            setPasswordTouched(false); // Reset password touched state
+            setPasswordTouched(false);
         }
     }, [isOpen, mode, initialData]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         
-        // Track if user actually interacts with password fields
         if (name === 'adminPassword' || name === 'confirmPassword') {
             setPasswordTouched(true);
         }
@@ -57,7 +56,6 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validasi client-side
         if (!formData.adminName || !formData.adminEmail) {
             setError('Nama dan email wajib diisi.');
             return;
@@ -74,9 +72,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
             }
         }
 
-        // FIXED: Only validate password matching if user actually touched password fields
         if (mode === 'edit' && passwordTouched) {
-            // If user interacted with password fields, both must be filled and match
             if (!formData.adminPassword || !formData.confirmPassword) {
                 setError('Jika ingin mengubah password, kedua field password harus diisi.');
                 return;
@@ -91,24 +87,22 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
             const dataToSubmit = {
                 adminName: formData.adminName,
                 adminEmail: formData.adminEmail,
-                role: 'admin', // Always send 'admin' as role
+                role: formData.role, // FIXED: Send the actual role from formData
             };
 
             if (mode === 'add') {
                 dataToSubmit.adminPassword = formData.adminPassword;
-                await onSubmit(dataToSubmit); // Panggil createAdmin
+                await onSubmit(dataToSubmit);
             } else {
-                // FIXED: Only include password change if user actually touched password fields
                 if (passwordTouched && formData.adminPassword && formData.confirmPassword) {
                     await onSubmit({
                         ...dataToSubmit,
                         newPassword: formData.adminPassword,
                         confirmPassword: formData.confirmPassword,
-                        isPasswordChange: true, // Tanda bahwa ini update password
+                        isPasswordChange: true,
                     });
                 } else {
-                    // Just update basic info without password change
-                    await onSubmit(dataToSubmit); // Panggil updateAdmin
+                    await onSubmit(dataToSubmit);
                 }
             }
         } catch (err) {
@@ -171,7 +165,6 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                                         required
                                     />
                                 </div>
-                                {/* Role input field removed - role is automatically set to 'admin' */}
                                 <div className="space-y-4">
                                     <div>
                                         <label

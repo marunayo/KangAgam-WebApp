@@ -75,7 +75,7 @@ const QuizFeedbackPopup = ({ isOpen, type, imageUrl }) => {
                             <img 
                                 src={imageUrl || selectedContent.defaultImage}
                                 alt={type === 'correct' ? 'Jawaban Benar' : 'Jawaban Salah'}
-                                className="w-48 h-48 object-cover rounded-xl shadow-lg"
+                                className="w-48 h-48 object-cover rounded-xl"
                             />
                         </div>
                     </motion.div>
@@ -436,7 +436,7 @@ const QuizPage = () => {
                                 variants={modalItemVariants} 
                                 className="text-xl text-text-secondary"
                             >
-                                Skor Akhir Anda:
+                                Skor akhir kamu adalah:
                             </motion.p>
                             <motion.p 
                                 variants={modalItemVariants} 

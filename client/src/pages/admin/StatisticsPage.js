@@ -1,3 +1,4 @@
+// StatisticsPage.js
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getDashboardData } from '../../services/dashboardService';
@@ -127,17 +128,19 @@ const StatisticsPage = () => {
         const { name, value } = e.target;
         const newFilters = { ...filters, [name]: value };
         setFilters(newFilters);
+        
+        // Map frontend filter names to card types
         const cardTypeMap = {
             visitorsPeriod: 'visitors',
             uniqueVisitorsPeriod: 'uniqueVisitors',
             topicPeriod: 'topics',
             cityPeriod: 'cities',
         };
+        
         const cardType = cardTypeMap[name];
         fetchCardData(cardType, newFilters);
     };
 
-    // ✅ PERBAIKAN: Tambahkan pengecekan 'chartArea' sebelum membuat gradien
     const visitorChartData = {
         labels: visitorStats.distribution?.map(d => d.label) || [],
         datasets: [{
@@ -145,7 +148,7 @@ const StatisticsPage = () => {
             data: visitorStats.distribution?.map(d => d.count) || [],
             backgroundColor: (context) => {
                 const { ctx, chartArea } = context.chart;
-                if (!chartArea) return 'rgba(124, 58, 237, 0.5)'; // Fallback color
+                if (!chartArea) return 'rgba(124, 58, 237, 0.5)';
                 return createGradient(ctx, chartArea, '#A78BFA80', '#7C3AED');
             },
             borderColor: '#7C3AED',
@@ -161,7 +164,7 @@ const StatisticsPage = () => {
             data: topicStats.distribution?.map(d => d.count) || [],
             backgroundColor: (context) => {
                 const { ctx, chartArea } = context.chart;
-                if (!chartArea) return 'rgba(245, 158, 11, 0.5)'; // Fallback color
+                if (!chartArea) return 'rgba(245, 158, 11, 0.5)';
                 return createGradient(ctx, chartArea, '#FBBF2480', '#F59E0B');
             },
             borderColor: '#F59E0B',
@@ -177,7 +180,7 @@ const StatisticsPage = () => {
             data: uniqueVisitorStats.distribution?.map(d => d.count) || [],
             backgroundColor: (context) => {
                 const { ctx, chartArea } = context.chart;
-                if (!chartArea) return 'rgba(5, 150, 105, 0.5)'; // Fallback color
+                if (!chartArea) return 'rgba(5, 150, 105, 0.5)';
                 return createGradient(ctx, chartArea, '#34D39980', '#059669');
             },
             borderColor: '#059669',
@@ -193,7 +196,7 @@ const StatisticsPage = () => {
             data: cityStats.distribution?.map(d => d.count) || [],
             backgroundColor: (context) => {
                 const { ctx, chartArea } = context.chart;
-                if (!chartArea) return 'rgba(236, 72, 153, 0.5)'; // Fallback color
+                if (!chartArea) return 'rgba(236, 72, 153, 0.5)';
                 return createGradient(ctx, chartArea, '#F472B680', '#EC4899');
             },
             borderColor: '#EC4899',

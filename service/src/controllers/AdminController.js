@@ -111,8 +111,11 @@ export const updateAdmin = async (req, res) => {
         const { adminName, adminEmail, role, newPassword, confirmPassword } = req.body;
         const loggedInAdmin = req.admin;
 
-        // Otorisasi: Izinkan jika superadmin atau mengedit diri sendiri
-        if (loggedInAdmin.role !== 'superadmin' && loggedInAdmin._id.toString() !== targetAdminId) {
+        // FIXED: Simplify authorization - allow superadmin or self-edit
+        const isSelfEdit = loggedInAdmin._id.toString() === targetAdminId;
+        const isSuperAdmin = loggedInAdmin.role === 'superadmin';
+        
+        if (!isSuperAdmin && !isSelfEdit) {
             return res.status(403).json({ message: "Akses ditolak: Anda hanya dapat mengedit data diri sendiri." });
         }
 
@@ -122,19 +125,20 @@ export const updateAdmin = async (req, res) => {
             return res.status(404).json({ message: "Admin tidak ditemukan." });
         }
 
-        // Update nama dan email
-        adminToUpdate.adminName = adminName || adminToUpdate.adminName;
-        adminToUpdate.adminEmail = adminEmail || adminToUpdate.adminEmail;
+        // Update nama dan email (always allowed for superadmin or self-edit)
+        if (adminName) adminToUpdate.adminName = adminName;
+        if (adminEmail) adminToUpdate.adminEmail = adminEmail;
 
-        // Update role (hanya superadmin)
-        if (loggedInAdmin.role === 'superadmin' && role) {
-            if (loggedInAdmin._id.toString() === targetAdminId && role !== 'superadmin') {
+        // Update role (only superadmin can change roles)
+        if (role && isSuperAdmin) {
+            // Prevent superadmin from demoting themselves
+            if (isSelfEdit && adminToUpdate.role === 'superadmin' && role !== 'superadmin') {
                 return res.status(400).json({ message: 'Superadmin tidak dapat menurunkan perannya sendiri.' });
             }
             adminToUpdate.role = role;
         }
 
-        // Update password jika disediakan
+        // Update password if provided (both fields required)
         if (newPassword && confirmPassword) {
             if (newPassword !== confirmPassword) {
                 return res.status(400).json({ message: "Password baru dan konfirmasi password tidak cocok." });
@@ -142,11 +146,14 @@ export const updateAdmin = async (req, res) => {
             if (newPassword.length < 6) {
                 return res.status(400).json({ message: "Password baru harus minimal 6 karakter." });
             }
-            adminToUpdate.adminPassword = newPassword; // Akan di-hash otomatis
+            adminToUpdate.adminPassword = newPassword;
         }
 
         const updatedAdmin = await adminToUpdate.save();
-        res.status(200).json({ message: "Admin berhasil diperbarui.", data: updatedAdmin });
+        
+        // Return without password
+        const { adminPassword, ...adminData } = updatedAdmin.toObject();
+        res.status(200).json({ message: "Admin berhasil diperbarui.", data: adminData });
     } catch (error) {
         res.status(500).json({ message: "Gagal memperbarui admin.", error: error.message });
     }
