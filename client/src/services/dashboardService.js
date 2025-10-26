@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// URL endpoint API untuk dashboard
 const API_URL = 'http://localhost:5000/api/dashboard';
 
 /**

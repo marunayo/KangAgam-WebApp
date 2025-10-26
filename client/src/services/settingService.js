@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// URL endpoint API untuk pengaturan
 const API_URL = 'http://localhost:5000/api/settings';
 
 /**
@@ -39,6 +40,7 @@ export const updateSettings = async (settingsData, token) => {
     }
 };
 
+// Mengumpulkan fungsi ke dalam satu objek service
 const settingService = {
     getSettings,
     updateSettings,

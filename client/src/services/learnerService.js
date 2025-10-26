@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// URL endpoint API untuk learner
 const API_URL = 'http://localhost:5000/api/learners';
 
 /**
@@ -41,7 +42,7 @@ const deleteLearner = async (id, token) => {
     }
 };
 
-
+// Mengumpulkan fungsi ke dalam satu objek service
 const learnerService = {
     getAllLearners,
     deleteLearner,

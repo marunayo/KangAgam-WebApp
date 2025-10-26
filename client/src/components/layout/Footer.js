@@ -1,7 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
+// Path ke logo Balai Bahasa (pastikan sesuai struktur folder Anda)
 const logoBalaiBahasa = '/assets/images/logo/tut-wuri-handayani.svg';
 
+/**
+ * Komponen footer utama aplikasi.
+ * Menampilkan identitas Balai Bahasa, statistik pengunjung unik, dan copyright.
+ * @param {number|string} totalUniqueVisitors - Jumlah total pengunjung unik (bisa string '...' saat loading).
+ */
 const Footer = ({ totalUniqueVisitors }) => {
     return (
         <footer className="bg-background-secondary text-text mt-8 border-t border-gray-200 dark:border-gray-700/50">
@@ -22,7 +28,10 @@ const Footer = ({ totalUniqueVisitors }) => {
                     <div className="text-center">
                         <p className="text-sm text-text-secondary">Total Pengunjung</p>
                         <p className="text-3xl font-bold text-primary">
-                            {typeof totalUniqueVisitors === 'number' ? totalUniqueVisitors.toLocaleString('id-ID') : '...'}
+                            {/* Tampilkan angka dengan format lokal atau '...' saat loading */}
+                            {typeof totalUniqueVisitors === 'number' 
+                                ? totalUniqueVisitors.toLocaleString('id-ID') 
+                                : '...'}
                         </p>
                     </div>
 

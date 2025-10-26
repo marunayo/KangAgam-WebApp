@@ -1,161 +1,201 @@
-// ManageTopicsPage.js (Modified)
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Pagination from '../../components/ui/Pagination';
-import TopicFormModal from '../../components/admin/TopicFormModal';
-import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal';
-import ManageTopicDetailModal from '../../components/admin/ManageTopicDetailModal';
-import StatusModal from '../../components/admin/StatusModal'; // Import the new StatusModal
-import { getTopics, addTopic, updateTopic, deleteTopic } from '../../services/topicService';
-import { useAuth } from '../../context/AuthContext';
-import LoadingIndicator from '../../components/ui/LoadingIndicator';
+import Pagination from '../../components/ui/Pagination'; // Komponen pagination
+import TopicFormModal from '../../components/admin/TopicFormModal'; // Modal form tambah/edit topik
+import ConfirmDeleteModal from '../../components/admin/ConfirmDeleteModal'; // Modal konfirmasi hapus
+import ManageTopicDetailModal from '../../components/admin/ManageTopicDetailModal'; // Modal detail topik (mobile)
+import StatusModal from '../../components/admin/StatusModal'; // Modal notifikasi status
+import { getTopics, addTopic, updateTopic, deleteTopic } from '../../services/topicService'; // Service API topik
+import { useAuth } from '../../context/AuthContext'; // Hook otentikasi
+import LoadingIndicator from '../../components/ui/LoadingIndicator'; // Indikator loading
 
+// Konstanta jumlah item per halaman
 const ITEMS_PER_PAGE = 8;
 
+// Komponen ikon internal
 const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
 const PlusIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>;
 const TrashIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" /></svg>;
 const SortAscIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" /></svg>;
 const SortDescIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" /></svg>;
 
+/**
+ * Komponen halaman untuk mengelola data topik kosakata.
+ * Memungkinkan pencarian, pengurutan, penambahan, pengeditan, penghapusan (tunggal/multi),
+ * dan navigasi ke halaman kelola kosakata per topik.
+ */
 const ManageTopicsPage = () => {
-    const { user } = useAuth();
-    const [topicsData, setTopicsData] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [sortOrder, setSortOrder] = useState('asc'); // 'asc' atau 'desc'
+    const { user } = useAuth(); // Ambil data user (terutama token)
+    const [topicsData, setTopicsData] = useState([]); // State daftar topik
+    const [isLoading, setIsLoading] = useState(true); // State status loading
+    const [error, setError] = useState(null); // State pesan error fetch
+    const [searchTerm, setSearchTerm] = useState(''); // State input pencarian
+    const [sortOrder, setSortOrder] = useState('asc'); // State urutan sorting ('asc' atau 'desc')
+    // State modal form (tambah/edit)
     const [formModalState, setFormModalState] = useState({ isOpen: false, mode: 'add', data: null });
-    const [deleteModalTopic, setDeleteModalTopic] = useState(null);
-    const [detailModalTopic, setDetailModalTopic] = useState(null);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [selectedTopics, setSelectedTopics] = useState([]);
-    const [statusModal, setStatusModal] = useState({ isOpen: false, message: '', type: 'success' }); // New state for status modal
+    // State topik yang akan dihapus (trigger modal konfirmasi)
+    const [deleteModalTopic, setDeleteModalTopic] = useState(null); 
+    // State topik untuk modal detail (mobile)
+    const [detailModalTopic, setDetailModalTopic] = useState(null); 
+    // State halaman pagination saat ini
+    const [currentPage, setCurrentPage] = useState(1); 
+    // State untuk menyimpan ID topik yang dipilih (checkbox)
+    const [selectedTopics, setSelectedTopics] = useState([]); 
+    // State modal notifikasi status
+    const [statusModal, setStatusModal] = useState({ isOpen: false, message: '', type: 'success' }); 
 
+    // Fungsi untuk mengambil data topik dari API
     const fetchTopics = async () => {
         try {
-            setIsLoading(true);
-            const minDelay = new Promise(resolve => setTimeout(resolve, 1000));
-            const dataFetch = getTopics();
-            const [data] = await Promise.all([dataFetch, minDelay]);
-            setTopicsData(data.topics || []);
+            setIsLoading(true); // Mulai loading
+            // Tambahkan delay minimum
+            const minDelay = new Promise(resolve => setTimeout(resolve, 1000)); 
+            const dataFetch = getTopics(); // Panggil API getTopics
+            const [data] = await Promise.all([dataFetch, minDelay]); // Tunggu data dan delay
+            setTopicsData(data.topics || []); // Simpan data topik ke state
         } catch (err) {
-            setError('Gagal memuat data topik.');
+            setError('Gagal memuat data topik.'); // Set error jika gagal
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // Selesai loading
         }
     };
 
+    // Panggil fetchTopics saat komponen dimuat
     useEffect(() => {
         fetchTopics();
-    }, []);
+    }, []); // Dependensi kosong agar hanya jalan sekali
 
+    // Handler untuk submit form (tambah/edit topik)
     const handleFormSubmit = async (data) => {
-        const token = user?.token;
-        if (!token) {
+        const token = user?.token; // Ambil token
+        if (!token) { // Validasi token
             setStatusModal({ isOpen: true, message: "Otentikasi gagal. Silakan login kembali.", type: 'error' });
             return;
         }
+        // Cek apakah data berupa array (untuk multi-add)
         const isMultiAdd = Array.isArray(data);
-        const submissions = isMultiAdd ? data : [data];
+        // Jadikan array tunggal jika bukan multi-add
+        const submissions = isMultiAdd ? data : [data]; 
         try {
-            if (formModalState.mode === 'add') {
-                await Promise.all(submissions.map(formData => addTopic(formData, token)));
+            if (formModalState.mode === 'add') { // Mode tambah
+                // Kirim semua form data (jika multi-add) secara paralel
+                await Promise.all(submissions.map(formData => addTopic(formData, token))); 
                 setStatusModal({ isOpen: true, message: `Berhasil menambahkan ${submissions.length} topik!`, type: 'success' });
-            } else if (formModalState.mode === 'edit') {
-                await updateTopic(formModalState.data._id, submissions[0], token);
+            } else if (formModalState.mode === 'edit') { // Mode edit
+                // Kirim form data pertama (karena edit hanya satu per satu)
+                await updateTopic(formModalState.data._id, submissions[0], token); 
                 setStatusModal({ isOpen: true, message: 'Topik berhasil diperbarui!', type: 'success' });
             }
-            fetchTopics();
+            fetchTopics(); // Refresh data setelah berhasil
         } catch (err) {
-            // ✅ [PROBLEM-2] Menampilkan pesan error yang lebih spesifik dari API
+            // Tampilkan pesan error spesifik dari API jika ada
             const errorMessage = err.response?.data?.message || 'Terjadi kesalahan pada server.';
             setStatusModal({ isOpen: true, message: `Gagal: ${errorMessage}`, type: 'error' });
         } finally {
+            // Tutup modal form dan detail setelah proses selesai
             setFormModalState({ isOpen: false, mode: 'add', data: null });
             setDetailModalTopic(null);
         }
     };
 
+    // Handler untuk konfirmasi penghapusan topik
     const handleDeleteConfirm = async () => {
-        if (!deleteModalTopic) return;
-        const token = user?.token;
-        if (!token) {
+        if (!deleteModalTopic) return; // Jangan lakukan jika tidak ada topik yang dipilih untuk dihapus
+        const token = user?.token; // Ambil token
+        if (!token) { // Validasi token
             setStatusModal({ isOpen: true, message: "Otentikasi gagal. Silakan login kembali.", type: 'error' });
             return;
         }
         try {
+            // Tentukan ID yang akan dihapus (bisa satu dari modal, atau banyak dari checkbox)
             const idsToDelete = selectedTopics.length > 0 ? selectedTopics : [deleteModalTopic._id];
-            await Promise.all(idsToDelete.map(id => deleteTopic(id, token)));
+            // Kirim request delete secara paralel jika multiple
+            await Promise.all(idsToDelete.map(id => deleteTopic(id, token))); 
             setStatusModal({ isOpen: true, message: `Berhasil menghapus ${idsToDelete.length} topik!`, type: 'success' });
-            fetchTopics();
-            setSelectedTopics([]);
+            fetchTopics(); // Refresh data
+            setSelectedTopics([]); // Kosongkan pilihan checkbox
         } catch (err) {
             setStatusModal({ isOpen: true, message: 'Gagal menghapus topik.', type: 'error' });
         } finally {
+            // Tutup modal delete dan detail setelah proses selesai
             setDeleteModalTopic(null);
             setDetailModalTopic(null);
         }
     };
 
+    // Handler untuk memilih/membatalkan pilihan topik (checkbox)
     const handleSelectTopic = (topicId) => {
         setSelectedTopics(prev =>
             prev.includes(topicId)
-                ? prev.filter(id => id !== topicId)
-                : [...prev, topicId]
+                ? prev.filter(id => id !== topicId) // Hapus jika sudah ada
+                : [...prev, topicId] // Tambah jika belum ada
         );
     };
 
+    // Handler untuk mengganti urutan sorting (asc/desc)
     const toggleSortOrder = () => {
-        setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-        setCurrentPage(1); // Reset ke halaman pertama setelah sorting
+        setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc'); // Ganti state sortOrder
+        setCurrentPage(1); // Kembali ke halaman 1 setelah sorting diubah
     };
 
-    // Filter dan sort topics
+    // Filter dan sort data topik berdasarkan searchTerm dan sortOrder
     const filteredAndSortedTopics = topicsData
+        // Filter berdasarkan nama topik (case-insensitive)
         .filter(topic =>
             (topic.topicName || '').toLowerCase().includes(searchTerm.toLowerCase())
         )
+        // Sort berdasarkan nama topik
         .sort((a, b) => {
             const nameA = (a.topicName || '').toLowerCase();
             const nameB = (b.topicName || '').toLowerCase();
             
-            if (sortOrder === 'asc') {
-                return nameA.localeCompare(nameB);
-            } else {
+            if (sortOrder === 'asc') { // Urutan Ascending (A-Z)
+                return nameA.localeCompare(nameB); // Gunakan localeCompare untuk sorting string
+            } else { // Urutan Descending (Z-A)
                 return nameB.localeCompare(nameA);
             }
         });
 
+    // Logika pagination
     const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
     const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
+    // Ambil data untuk halaman saat ini
     const currentItems = filteredAndSortedTopics.slice(indexOfFirstItem, indexOfLastItem);
 
+    // Handler untuk checkbox "Pilih Semua" di header tabel
     const handleSelectAll = () => {
+        // Ambil semua ID topik yang terlihat di halaman saat ini
         const allVisibleIds = currentItems.map(item => item._id);
+        // Cek apakah semua topik di halaman ini sudah terpilih
         const allSelectedOnPage = allVisibleIds.every(id => selectedTopics.includes(id));
-        if (allSelectedOnPage) {
+        if (allSelectedOnPage) { // Jika semua sudah terpilih, batalkan pilihan semua di halaman ini
             setSelectedTopics(prev => prev.filter(id => !allVisibleIds.includes(id)));
-        } else {
+        } else { // Jika belum semua terpilih, pilih semua di halaman ini (hindari duplikat)
             setSelectedTopics(prev => [...new Set([...prev, ...allVisibleIds])]);
         }
     };
 
+    // Hitung total halaman
     const totalPages = Math.ceil(filteredAndSortedTopics.length / ITEMS_PER_PAGE);
+    // Handler ganti halaman pagination
     const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
+    // Hitung baris kosong untuk menjaga tinggi tabel konsisten
     const emptyRowsCount = Math.max(0, ITEMS_PER_PAGE - currentItems.length);
     const emptyRows = Array(emptyRowsCount).fill(null);
 
     return (
         <div>
+            {/* Header Halaman dan Kontrol */}
             <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
                 <h1 className="text-2xl sm:text-3xl font-bold text-text">Daftar Topik</h1>
+                {/* Kontrol Pencarian, Sort, Hapus Multi, Tambah */}
                 <div className="flex items-center gap-2 w-full sm:w-auto">
+                    {/* Input Pencarian */}
                     <div className="relative flex-grow">
                         <span className="absolute inset-y-0 left-0 flex items-center pl-3"><SearchIcon /></span>
                         <input type="text" placeholder="Cari..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 pr-4 py-2 w-full border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-background-secondary text-text"/>
                     </div>
-                    {/* Sort Button - Mobile & Desktop */}
+                    {/* Tombol Sort (Desktop & Mobile) */}
                     <button 
                         onClick={toggleSortOrder}
                         className="bg-gray-500/10 text-text-secondary font-bold px-3 py-2 rounded-lg flex items-center gap-1 hover:bg-gray-500/20 flex-shrink-0 text-sm"
@@ -164,74 +204,98 @@ const ManageTopicsPage = () => {
                         {sortOrder === 'asc' ? <SortAscIcon /> : <SortDescIcon />}
                         <span className="hidden sm:inline">{sortOrder === 'asc' ? 'A-Z' : 'Z-A'}</span>
                     </button>
+                    {/* Tombol Hapus Multi (muncul jika ada topik dipilih) */}
                     {selectedTopics.length > 0 && (
                         <button onClick={() => setDeleteModalTopic({ multi: true })} className="bg-red-500 text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-red-600 text-sm">
                             <TrashIcon />
                             <span>Hapus ({selectedTopics.length})</span>
                         </button>
                     )}
+                    {/* Tombol Tambah */}
                     <button onClick={() => setFormModalState({ isOpen: true, mode: 'add', data: null })} className="bg-primary text-white font-bold px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90 flex-shrink-0 text-sm">
                         <PlusIcon />
                         <span>Tambah</span>
                     </button>
                 </div>
             </div>
+            {/* Tabel Data Topik */}
             <div className="bg-background-secondary rounded-xl shadow-md overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
+                        {/* Header Tabel */}
                         <thead className="bg-slate-50 dark:bg-gray-700/50">
                             <tr style={{ height: '60px' }}>
+                                {/* Checkbox Pilih Semua */}
                                 <th className="p-3 px-6 w-4">
                                     <input type="checkbox" className="rounded" onChange={handleSelectAll} checked={currentItems.length > 0 && currentItems.every(item => selectedTopics.includes(item._id))} />
                                 </th>
+                                {/* Kolom No */}
                                 <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[5%]">No.</th>
+                                {/* Kolom Nama Topik (dengan tombol sort mobile) */}
                                 <th className="p-3 px-6 font-bold text-text-secondary">
                                     <div className="flex items-center gap-2">
                                         Nama Topik
                                         <button 
                                             onClick={toggleSortOrder}
-                                            className="sm:hidden p-1 hover:bg-gray-500/10 rounded"
+                                            className="sm:hidden p-1 hover:bg-gray-500/10 rounded" // Tombol sort hanya muncul di mobile
                                             title={`Urut ${sortOrder === 'asc' ? 'A-Z' : 'Z-A'}`}
                                         >
                                             {sortOrder === 'asc' ? <SortAscIcon /> : <SortDescIcon />}
                                         </button>
                                     </div>
                                 </th>
+                                {/* Kolom Total Kosakata */}
                                 <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[20%]">Total Kosakata</th>
+                                {/* Kolom Aksi */}
                                 <th className="p-3 px-6 font-bold text-text-secondary text-right">Aksi</th>
                             </tr>
                         </thead>
+                        {/* Body Tabel */}
                         <tbody>
-                            {isLoading ? (
+                            {isLoading ? ( // Tampilkan loading jika sedang fetch
                                 <tr style={{ height: `${ITEMS_PER_PAGE * 60}px` }}><td colSpan="5" className="text-center align-middle"><LoadingIndicator /></td></tr>
-                            ) : error ? (
+                            ) : error ? ( // Tampilkan error jika fetch gagal
                                 <tr style={{ height: `${ITEMS_PER_PAGE * 60}px` }}><td colSpan="5" className="text-center align-middle text-red-500">{error}</td></tr>
-                            ) : (
+                            ) : ( // Tampilkan data jika ada dan tidak error
                                 <>
                                     {currentItems.map((topic, index) => (
+                                        // Baris data topik
                                         <tr key={topic._id} className={`border-b border-background hover:bg-background/50 ${selectedTopics.includes(topic._id) ? 'bg-primary/10' : ''}`} style={{ height: '60px' }}>
+                                            {/* Checkbox Pilih */}
                                             <td className="p-3 px-6">
                                                 <input type="checkbox" className="rounded" checked={selectedTopics.includes(topic._id)} onChange={() => handleSelectTopic(topic._id)} />
                                             </td>
+                                            {/* No */}
                                             <td className="hidden sm:table-cell p-3 px-6 text-text-secondary">{indexOfFirstItem + index + 1}</td>
+                                            {/* Nama Topik */}
                                             <td className="p-3 px-6 text-text font-semibold truncate">{topic.topicName || 'Tanpa Nama'}</td>
+                                            {/* Total Kosakata */}
                                             <td className="hidden sm:table-cell p-3 px-6 text-text-secondary">{topic.topicEntries.length}</td>
+                                            {/* Aksi */}
                                             <td className="p-3 px-6 text-right">
+                                                {/* Tombol Aksi Desktop */}
                                                 <div className="hidden sm:flex justify-end items-center gap-2">
+                                                    {/* Link Pratinjau (buka tab baru) */}
                                                     <Link to={`/topik/${topic._id}`} target="_blank" rel="noopener noreferrer" className="bg-gray-500/10 text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-500/20">Pratinjau</Link>
+                                                    {/* Link ke Kelola Kosakata */}
                                                     <Link to={`/admin/manage-topics/${topic._id}`} className="bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-primary/20">Kosakata</Link>
+                                                    {/* Tombol Edit */}
                                                     <button onClick={() => setFormModalState({ isOpen: true, mode: 'edit', data: topic })} className="bg-yellow-500/10 text-yellow-600 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-yellow-500/20">Edit</button>
+                                                    {/* Tombol Hapus */}
                                                     <button onClick={() => setDeleteModalTopic(topic)} className="bg-red-500/10 text-red-500 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-red-500/20">Hapus</button>
                                                 </div>
+                                                {/* Tombol Aksi Mobile (Detail) */}
                                                 <div className="sm:hidden">
                                                     <button onClick={() => setDetailModalTopic(topic)} className="bg-background text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-background/80">Detail</button>
                                                 </div>
                                             </td>
                                         </tr>
                                     ))}
+                                    {/* Render baris kosong untuk menjaga tinggi tabel */}
                                     {emptyRows.map((_, index) => (
                                         <tr key={`empty-${index}`} className="border-b border-background" style={{ height: '60px' }}><td colSpan="5"></td></tr>
                                     ))}
+                                    {/* Tampilkan pesan jika tidak ada topik setelah filter/search */}
                                     {currentItems.length === 0 && (
                                         <tr style={{ height: `${ITEMS_PER_PAGE * 60}px` }}><td colSpan="5" className="text-center align-middle text-text-secondary">Tidak ada topik yang ditemukan.</td></tr>
                                     )}
@@ -240,10 +304,12 @@ const ManageTopicsPage = () => {
                         </tbody>
                     </table>
                 </div>
+                {/* Footer Tabel (Pagination) */}
                 <div className="p-4 border-t border-background">
                     <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} totalItems={filteredAndSortedTopics.length} />
                 </div>
             </div>
+            {/* Modal Form Tambah/Edit Topik */}
             <TopicFormModal 
                 isOpen={formModalState.isOpen}
                 onClose={() => setFormModalState({ isOpen: false, mode: 'add', data: null })}
@@ -251,23 +317,30 @@ const ManageTopicsPage = () => {
                 mode={formModalState.mode}
                 initialData={formModalState.data}
             />
+            {/* Modal Konfirmasi Hapus */}
             <ConfirmDeleteModal
                 isOpen={!!deleteModalTopic}
                 onClose={() => setDeleteModalTopic(null)}
                 onConfirm={handleDeleteConfirm}
+                // Judul modal berbeda tergantung hapus tunggal atau multi
                 title={selectedTopics.length > 0 ? "Hapus Topik yang Dipilih" : "Hapus Topik"}
+                // Pesan modal berbeda tergantung hapus tunggal atau multi
                 message={
                     selectedTopics.length > 0
                     ? `Apakah Anda yakin ingin menghapus ${selectedTopics.length} topik yang dipilih?`
                     : deleteModalTopic ? `Apakah Anda yakin ingin menghapus topik "${deleteModalTopic?.topicName}"?` : ''
                 }
             />
+            {/* Modal Detail Topik (Mobile) */}
             <ManageTopicDetailModal
                 topic={detailModalTopic}
                 onClose={() => setDetailModalTopic(null)}
+                // Buka modal edit dari modal detail
                 onEdit={() => setFormModalState({ isOpen: true, mode: 'edit', data: detailModalTopic })}
+                // Buka modal delete dari modal detail
                 onDelete={() => setDeleteModalTopic(detailModalTopic)}
             />
+            {/* Modal Notifikasi Status */}
             <StatusModal
                 isOpen={statusModal.isOpen}
                 onClose={() => setStatusModal({ ...statusModal, isOpen: false })}

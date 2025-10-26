@@ -1,13 +1,20 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Komponen Ikon
+// Komponen internal untuk ikon 'Close' (X)
 const CloseIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
 );
 
+/**
+ * Komponen modal "bottom sheet" untuk menampilkan detail pengguna (learner).
+ * @param {object} learner - Objek data pengguna yang akan ditampilkan.
+ * @param {function} onClose - Fungsi untuk menutup modal.
+ * @param {function} onDelete - Fungsi yang dipanggil saat tombol 'Hapus' diklik.
+ * @param {boolean} [hideDeleteButton=false] - Opsional, sembunyikan tombol hapus.
+ */
 const ManageLearnerDetailModal = ({ learner, onClose, onDelete, hideDeleteButton = false }) => {
     return (
         <AnimatePresence>
@@ -34,6 +41,7 @@ const ManageLearnerDetailModal = ({ learner, onClose, onDelete, hideDeleteButton
                             </button>
                         </header>
 
+                        {/* Bagian isi detail pengguna */}
                         <div className="p-4 space-y-3">
                             <div className="bg-gray-100 p-3 rounded-lg">
                                 <p className="text-xs text-gray-500">Domisili</p>
@@ -45,7 +53,7 @@ const ManageLearnerDetailModal = ({ learner, onClose, onDelete, hideDeleteButton
                             </div>
                         </div>
 
-                        {/* Conditionally render the footer with delete button */}
+                        {/* Tombol Hapus (ditampilkan secara kondisional) */}
                         {!hideDeleteButton && (
                             <footer className="p-4 pt-0">
                                 <button onClick={onDelete} className="w-full bg-red-500 text-white font-bold py-3 rounded-lg hover:bg-red-600 text-sm">

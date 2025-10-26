@@ -1,11 +1,12 @@
 import axios from 'axios';
 
+// URL endpoint API untuk log pengunjung
 const API_URL = 'http://localhost:5000/api/visitor-logs';
 
 /**
  * Mengirimkan log kunjungan ke server.
  * @param {object} logData - Objek berisi learnerId dan topicId.
- * @returns {Promise<object>} Data log yang tersimpan.
+ * @returns {Promise<object | void>} Data log yang tersimpan, atau void jika gagal.
  */
 export const logVisit = async (logData) => {
     try {

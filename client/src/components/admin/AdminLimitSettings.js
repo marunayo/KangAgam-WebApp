@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 
+/**
+ * Komponen untuk menampilkan pengaturan batas admin (saat ini dinonaktifkan).
+ * @param {number} currentLimit - Batas admin saat ini.
+ */
 const AdminLimitSettings = ({ currentLimit }) => {
+    // State untuk menyimpan nilai limit (saat ini tidak digunakan aktif)
     const [limit, setLimit] = useState(currentLimit);
 
     return (
@@ -15,10 +20,10 @@ const AdminLimitSettings = ({ currentLimit }) => {
                     onChange={(e) => setLimit(e.target.value)}
                     className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-background text-text disabled:opacity-50 disabled:cursor-not-allowed"
                     min="1"
-                    disabled // ✅ Dinonaktifkan
+                    disabled // Dinonaktifkan
                 />
                 <button
-                    disabled // ✅ Dinonaktifkan
+                    disabled // Dinonaktifkan
                     className="bg-primary text-white font-bold px-4 py-1.5 rounded-lg text-sm hover:opacity-90 disabled:opacity-50"
                 >
                     Simpan

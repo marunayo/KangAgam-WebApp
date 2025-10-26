@@ -1,13 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Komponen internal untuk ikon 'Close' (X)
 const CloseIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
 );
 
+/**
+ * Komponen modal untuk menambah atau mengedit data admin.
+ * @param {boolean} isOpen - Status modal (terbuka/tertutup).
+ * @param {function} onClose - Fungsi untuk menutup modal.
+ * @param {function} onSubmit - Fungsi yang dipanggil saat form disubmit.
+ * @param {boolean} isSubmitting - Status loading saat submit.
+ * @param {string} mode - Mode modal ('add' atau 'edit').
+ * @param {object} initialData - Data admin (digunakan saat mode 'edit').
+ */
 const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initialData }) => {
+    // State untuk menyimpan data form
     const [formData, setFormData] = useState({
         adminName: '',
         adminEmail: '',
@@ -15,12 +26,16 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
         confirmPassword: '',
         role: 'admin',
     });
+    // State untuk menyimpan pesan error
     const [error, setError] = useState('');
+    // State untuk melacak apakah field password sudah disentuh (untuk validasi edit)
     const [passwordTouched, setPasswordTouched] = useState(false);
 
+    // Efek untuk me-reset form saat modal dibuka atau data berubah
     useEffect(() => {
         if (isOpen) {
             if (mode === 'edit' && initialData) {
+                // Jika mode 'edit', isi form dengan data yang ada
                 setFormData({
                     adminName: initialData.adminName || '',
                     adminEmail: initialData.adminEmail || '',
@@ -29,6 +44,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                     confirmPassword: '',
                 });
             } else {
+                // Jika mode 'add', reset form ke nilai default
                 setFormData({
                     adminName: '',
                     adminEmail: '',
@@ -37,15 +53,17 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                     role: 'admin', // Default role for new admins
                 });
             }
-            setError('');
-            setPasswordTouched(false);
+            setError(''); // Bersihkan error
+            setPasswordTouched(false); // Reset status password
         }
     }, [isOpen, mode, initialData]);
 
+    // Handler untuk memperbarui state saat input form berubah
     const handleChange = (e) => {
         const { name, value } = e.target;
         
         if (name === 'adminPassword' || name === 'confirmPassword') {
+            // Tandai bahwa password sudah disentuh
             setPasswordTouched(true);
         }
         
@@ -53,14 +71,17 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
         setError('');
     };
 
+    // Handler untuk memproses submit form
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Validasi dasar
         if (!formData.adminName || !formData.adminEmail) {
             setError('Nama dan email wajib diisi.');
             return;
         }
 
+        // Validasi untuk mode 'add'
         if (mode === 'add') {
             if (!formData.adminPassword || !formData.confirmPassword) {
                 setError('Kata sandi dan konfirmasi kata sandi wajib diisi.');
@@ -72,6 +93,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
             }
         }
 
+        // Validasi untuk mode 'edit' jika password disentuh
         if (mode === 'edit' && passwordTouched) {
             if (!formData.adminPassword || !formData.confirmPassword) {
                 setError('Jika ingin mengubah password, kedua field password harus diisi.');
@@ -84,6 +106,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
         }
 
         try {
+            // Siapkan data yang akan dikirim
             const dataToSubmit = {
                 adminName: formData.adminName,
                 adminEmail: formData.adminEmail,
@@ -91,9 +114,11 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
             };
 
             if (mode === 'add') {
+                // Kirim password jika mode 'add'
                 dataToSubmit.adminPassword = formData.adminPassword;
                 await onSubmit(dataToSubmit);
             } else {
+                // Kirim password baru jika di mode 'edit' dan password diisi
                 if (passwordTouched && formData.adminPassword && formData.confirmPassword) {
                     await onSubmit({
                         ...dataToSubmit,
@@ -102,6 +127,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                         isPasswordChange: true,
                     });
                 } else {
+                    // Kirim hanya data profil jika password tidak diubah
                     await onSubmit(dataToSubmit);
                 }
             }

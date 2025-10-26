@@ -19,20 +19,23 @@ import ManageLearnersPage from '../pages/admin/ManageLearnersPage';
 import ManageCultureTopicsPage from '../pages/admin/ManageCultureTopicsPage';
 import ManageCultureEntriesPage from '../pages/admin/ManageCultureEntriesPage';
 
-// ✅ Import halaman user
+// Import halaman user
 import CultureTopicsPage from '../pages/CultureTopicsPage';
 import CultureEntriesPage from '../pages/CultureEntriesPage';
 import CultureEntryDetailPage from '../pages/CultureEntryDetailPage';
 
-// ✅ Import komponen 404 dan route guard
+// Import komponen 404 dan route guard
 import NotFoundPage from '../components/NotFoundPage';
 import TopicRouteGuard from '../components/guards/TopicRouteGuard';
 
-// ✅ Route guard untuk entry ID (jika diperlukan)
+// Komponen guard untuk memvalidasi format 'entryId' dari URL params
+// Ini memastikan bahwa ID yang diterima adalah ObjectId (MongoDB) yang valid
+// sebelum me-render children (halaman detail). Jika tidak, tampilkan halaman 404.
 const EntryRouteGuard = ({ children }) => {
     const params = useParams();
     const entryId = params.entryId;
     
+    // Fungsi internal untuk validasi format ObjectId
     const isValidObjectId = (id) => {
         if (!id) return false;
         return /^[0-9a-fA-F]{24}$/.test(id);
@@ -45,10 +48,15 @@ const EntryRouteGuard = ({ children }) => {
     return children;
 };
 
+// Komponen utama yang mendefinisikan semua rute (Routes) aplikasi.
+// Komponen ini juga menggunakan 'AnimatePresence' dari framer-motion
+// untuk memberikan animasi transisi antar halaman.
+// 'useEffect' digunakan untuk memperbarui judul (title) dokumen
+// secara dinamis berdasarkan rute (location.pathname) saat ini.
 const AnimatedRoutes = () => {
     const location = useLocation();
     
-    // Optional: Add page title updates based on route
+    // Effect untuk mengubah judul halaman di tab browser
     useEffect(() => {
         const titles = {
             '/': 'Selamat Datang',
@@ -65,7 +73,7 @@ const AnimatedRoutes = () => {
     return (
         <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
-                {/* ✅ Protected Onboarding - mencegah user yang sudah login kembali ke onboarding */}
+                {/* Rute untuk halaman Onboarding, dilindungi oleh OnboardingGuard */}
                 <Route 
                     path="/" 
                     element={
@@ -75,7 +83,7 @@ const AnimatedRoutes = () => {
                     } 
                 />
                 
-                {/* ✅ Protected Admin Login - mencegah admin yang sudah login kembali ke login */}
+                {/* Rute untuk halaman Login Admin, dilindungi oleh AdminLoginGuard */}
                 <Route 
                     path="/admin/login" 
                     element={
@@ -85,12 +93,13 @@ const AnimatedRoutes = () => {
                     } 
                 />
 
-                {/* Rute User Terproteksi */}
+                {/* Grup Rute User (Learner) yang diproteksi (membutuhkan login user) */}
                 <Route element={<ProtectedRoutes />}>
+                    {/* Semua rute di dalam sini akan menggunakan UserLayout */}
                     <Route element={<UserLayout />}>
                         <Route path="/home" element={<HomePage />} />
                         
-                        {/* ✅ Protected topic routes with validation */}
+                        {/* Rute Kosakata dan Quiz dilindungi oleh TopicRouteGuard */}
                         <Route 
                             path="/topik/:topicId" 
                             element={
@@ -110,7 +119,7 @@ const AnimatedRoutes = () => {
                         
                         <Route path="/kamus-budaya" element={<CultureTopicsPage />} />
                         
-                        {/* ✅ Protected culture routes with validation */}
+                        {/* Rute (Culture) dilindungi oleh TopicRouteGuard */}
                         <Route 
                             path="/kamus-budaya/:topicId" 
                             element={
@@ -119,6 +128,7 @@ const AnimatedRoutes = () => {
                                 </TopicRouteGuard>
                             } 
                         />
+                        {/* Rute detail (Culture Entry) dilindungi oleh TopicRouteGuard dan EntryRouteGuard */}
                         <Route 
                             path="/kamus-budaya/:topicId/entry/:entryId" 
                             element={
@@ -132,14 +142,15 @@ const AnimatedRoutes = () => {
                     </Route>
                 </Route>
 
-                {/* Rute Admin */}
+                {/* Grup Rute Admin yang diproteksi (membutuhkan login admin) */}
                 <Route path="/admin" element={<AdminRoute />}>
+                    {/* Semua rute di dalam sini akan menggunakan AdminLayout */}
                     <Route element={<AdminLayout />}>
                         <Route index element={<AdminDashboard />} />
                         <Route path="dashboard" element={<AdminDashboard />} />
                         <Route path="manage-topics" element={<ManageTopicsPage />} />
                         
-                        {/* ✅ Protected admin topic routes with validation */}
+                        {/* Rute admin untuk kelola kata, dilindungi oleh TopicRouteGuard */}
                         <Route 
                             path="manage-topics/:topicId" 
                             element={
@@ -154,7 +165,7 @@ const AnimatedRoutes = () => {
                         <Route path="manage-learners" element={<ManageLearnersPage />} />
                         <Route path="manage-culture-topics" element={<ManageCultureTopicsPage />} />
                         
-                        {/* ✅ Protected admin culture routes with validation */}
+                        {/* Rute admin untuk kelola entri budaya, dilindungi oleh TopicRouteGuard */}
                         <Route 
                             path="manage-culture-topics/:topicId/entries" 
                             element={
@@ -166,13 +177,16 @@ const AnimatedRoutes = () => {
                     </Route>
                 </Route>
                 
-                {/* ✅ 404 Route */}
+                {/* Rute 404 (Not Found) untuk menangani URL yang tidak cocok */}
                 <Route path="*" element={<NotFoundPage />} />
             </Routes>
         </AnimatePresence>
     );
 };
 
+// Komponen AppRoutes: Wrapper utama untuk sistem routing
+// Komponen ini membungkus <AnimatedRoutes /> dengan <BrowserRouter />
+// untuk mengaktifkan client-side routing di seluruh aplikasi.
 const AppRoutes = () => {
     return (
         <BrowserRouter>

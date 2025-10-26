@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
+// import * as XLSX from 'xlsx';
+// import { saveAs } from 'file-saver';
 
-// Helper function to format filter period names
+/**
+ * Helper function untuk memformat nama periode filter.
+ * @param {string} period - Nama periode (cth: 'daily').
+ * @returns {string} Nama yang sudah diformat (cth: 'Harian').
+ */
 const formatPeriod = (period) => {
     switch (period) {
         case 'daily': return 'Harian';
@@ -15,7 +19,11 @@ const formatPeriod = (period) => {
     }
 };
 
-// Helper function to get topic name
+/**
+ * Helper function untuk mendapatkan nama topik dalam bahasa Indonesia.
+ * @param {string|Array} nameData - Data nama topik.
+ * @returns {string} Nama topik.
+ */
 const getTopicName = (nameData) => {
     if (!nameData) return 'N/A';
     if (typeof nameData === 'string') return nameData;
@@ -27,6 +35,18 @@ const getTopicName = (nameData) => {
     return 'N/A';
 };
 
+/**
+ * Komponen untuk menyediakan tombol ekspor PDF (dan Excel, jika diaktifkan).
+ * @param {object} visitorData - Data untuk chart total kunjungan.
+ * @param {object} topicData - Data untuk chart topik.
+ * @param {object} uniqueVisitorData - Data untuk chart pengunjung unik.
+ * @param {object} cityData - Data untuk chart domisili.
+ * @param {object} filters - Objek berisi filter yang sedang aktif.
+ * @param {React.Ref} visitorChartRef - Ref ke chart total kunjungan.
+ * @param {React.Ref} topicChartRef - Ref ke chart topik.
+ * @param {React.Ref} uniqueVisitorChartRef - Ref ke chart pengunjung unik.
+ * @param {React.Ref} cityChartRef - Ref ke chart domisili.
+ */
 const ExportControls = ({ 
     visitorData, 
     topicData,
@@ -40,6 +60,9 @@ const ExportControls = ({
 }) => {
     const [isExporting, setIsExporting] = useState(false);
 
+    /**
+     * Handler untuk membuat dan mengunduh laporan dalam format PDF.
+     */
     const handleExportPDF = () => {
         setIsExporting(true);
         const doc = new jsPDF();
@@ -52,9 +75,17 @@ const ExportControls = ({
         doc.setTextColor(100);
         doc.text(`Tanggal Ekspor: ${today}`, 14, 30);
 
-        let yPos = 40;
+        let yPos = 40; // Posisi Y awal pada PDF
 
-        // Fungsi untuk menambahkan chart dan tabel ke PDF
+        /**
+         * Fungsi internal untuk menambahkan satu blok (chart dan tabel) ke PDF.
+         * @param {string} title - Judul blok.
+         * @param {React.Ref} chartRef - Ref ke canvas chart.
+         * @param {Array<Array<string>>} tableData - Data untuk tabel.
+         * @param {Array<string>} tableHeaders - Header untuk tabel.
+         * @param {string} periodFilter - Filter periode yang aktif.
+         * @param {number|null} totalValue - Nilai total (opsional).
+         */
         const addChartAndTable = (title, chartRef, tableData, tableHeaders, periodFilter, totalValue = null) => {
             if (yPos > 240) { // Cek jika perlu halaman baru
                 doc.addPage();
@@ -71,10 +102,11 @@ const ExportControls = ({
             }
 
             try {
+                // Coba tambahkan gambar dari canvas chart
                 const chartImage = chartRef.current?.toBase64Image();
                 if (chartImage) {
                     doc.addImage(chartImage, 'PNG', 14, yPos, 180, 80);
-                    yPos += 90;
+                    yPos += 90; // Beri ruang setelah gambar
                 }
             } catch (e) {
                 console.error("Gagal menambahkan chart ke PDF:", e);
@@ -82,7 +114,7 @@ const ExportControls = ({
                 yPos += 10;
             }
 
-            // ✅ PERBAIKAN: Simpan hasil autoTable ke variabel
+            // Tambahkan tabel data
             autoTable(doc, {
                 startY: yPos,
                 head: [tableHeaders],
@@ -90,7 +122,7 @@ const ExportControls = ({
                 theme: 'striped',
                 headStyles: { fillColor: [41, 128, 185] },
             });
-            // ✅ PERBAIKAN: Akses posisi akhir dari objek 'doc' setelah autoTable dijalankan
+            // Perbarui posisi Y ke posisi akhir setelah tabel dibuat
             yPos = doc.lastAutoTable.finalY + 15;
         };
 
@@ -132,11 +164,10 @@ const ExportControls = ({
             filters.cityPeriod
         );
 
+        // Simpan file PDF
         doc.save(`statistik-kang-agam-${new Date().toISOString().split('T')[0]}.pdf`);
         setIsExporting(false);
     };
-
-    // ... (fungsi handleExportExcel tetap sama)
 
     return (
         <div className="flex items-center gap-2">

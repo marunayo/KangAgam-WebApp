@@ -1,25 +1,34 @@
-// StatusModal.js (New Component)
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Komponen internal untuk ikon 'Close' (X)
 const CloseIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
 );
 
+// Komponen internal untuk ikon 'Success' (centang)
 const SuccessIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
     </svg>
 );
 
+// Komponen internal untuk ikon 'Error' (silang)
 const ErrorIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
 );
 
+/**
+ * Komponen modal untuk menampilkan status (sukses atau error).
+ * @param {boolean} isOpen - Status modal (terbuka/tertutup).
+ * @param {function} onClose - Fungsi untuk menutup modal.
+ * @param {string} message - Pesan yang akan ditampilkan.
+ * @param {string} [type='success'] - Tipe modal ('success' atau 'error').
+ */
 const StatusModal = ({ isOpen, onClose, message, type = 'success' }) => {
     return (
         <AnimatePresence>

@@ -1,25 +1,39 @@
 import axios from 'axios';
 
+// URL endpoint API untuk admin
 const API_URL = 'http://localhost:5000/api/admins';
 
+/**
+ * Mengirim permintaan login admin ke server.
+ * @param {object} adminData - Objek berisi email dan password.
+ * @returns {Promise<object>} Data admin dan token jika berhasil.
+ */
 const login = async (adminData) => {
     try {
         const response = await axios.post(`${API_URL}/login`, adminData);
         return response.data;
     } catch (error) {
         console.error('Error login:', error);
-        // --- PERBAIKAN DI SINI ---
-        // Alih-alih melempar objek buatan, lempar error asli dari axios.
-        // Ini akan membuat pesan error dari backend (seperti "Password salah")
-        // bisa sampai ke halaman login.
+        // Lempar error asli yang diterima dari Axios,
+        // agar pesan error spesifik (cth: "Password salah")
+        // dapat ditangkap dan ditampilkan di halaman login.
         throw error;
     }
 };
 
+/**
+ * Fungsi placeholder untuk logout.
+ * Implementasi logout sesungguhnya ada di AuthContext.
+ */
 const logout = () => {
     localStorage.removeItem('user');
 };
 
+/**
+ * Mengambil semua data admin dari server.
+ * @param {string} token - Token JWT untuk otorisasi.
+ * @returns {Promise<object>} Daftar semua admin.
+ */
 const getAllAdmins = async (token) => {
     try {
         const config = {
@@ -33,6 +47,12 @@ const getAllAdmins = async (token) => {
     }
 };
 
+/**
+ * Membuat admin baru di server.
+ * @param {object} adminData - Data admin baru.
+ * @param {string} token - Token JWT untuk otorisasi.
+ * @returns {Promise<object>} Data admin yang baru dibuat.
+ */
 const createAdmin = async (adminData, token) => {
     try {
         console.log('Creating admin with data:', adminData);
@@ -47,6 +67,13 @@ const createAdmin = async (adminData, token) => {
     }
 };
 
+/**
+ * Memperbarui data admin di server.
+ * @param {string} id - ID admin yang akan diperbarui.
+ * @param {object} adminData - Data baru untuk admin.
+ * @param {string} token - Token JWT untuk otorisasi.
+ * @returns {Promise<object>} Data admin yang telah diperbarui.
+ */
 const updateAdmin = async (id, adminData, token) => {
     try {
         console.log('Updating admin ID:', id, 'with data:', adminData);
@@ -61,6 +88,12 @@ const updateAdmin = async (id, adminData, token) => {
     }
 };
 
+/**
+ * Menghapus admin dari server.
+ * @param {string} id - ID admin yang akan dihapus.
+ * @param {string} token - Token JWT untuk otorisasi.
+ * @returns {Promise<object>} Pesan konfirmasi.
+ */
 const deleteAdmin = async (id, token) => {
     try {
         const config = {
@@ -74,6 +107,13 @@ const deleteAdmin = async (id, token) => {
     }
 };
 
+/**
+ * Mengubah password admin di server.
+ * @param {string} adminId - ID admin yang passwordnya akan diubah.
+ * @param {object} passwordData - Objek berisi password lama dan baru.
+ * @param {string} token - Token JWT untuk otorisasi.
+ * @returns {Promise<object>} Pesan konfirmasi.
+ */
 const changePassword = async (adminId, passwordData, token) => {
     const response = await axios.put(
         `${API_URL}/${adminId}/change-password`,
@@ -87,6 +127,7 @@ const changePassword = async (adminId, passwordData, token) => {
     return response.data;
 };
 
+// Mengumpulkan semua fungsi ke dalam satu objek service
 const adminService = {
     login,
     logout,

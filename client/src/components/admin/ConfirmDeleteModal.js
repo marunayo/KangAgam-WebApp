@@ -1,6 +1,14 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+/**
+ * Komponen modal untuk konfirmasi penghapusan.
+ * @param {boolean} isOpen - Status modal (terbuka/tertutup).
+ * @param {function} onClose - Fungsi untuk menutup modal.
+ * @param {function} onConfirm - Fungsi yang dipanggil saat tombol 'Hapus' diklik.
+ * @param {string} title - Judul modal (cth: "Hapus Admin?").
+ * @param {string} message - Pesan detail konfirmasi.
+ */
 const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, title, message }) => {
     return (
         <AnimatePresence>
@@ -17,16 +25,16 @@ const ConfirmDeleteModal = ({ isOpen, onClose, onConfirm, title, message }) => {
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.9, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        // ✅ PERBAIKAN: Menggunakan warna tema untuk latar belakang modal
+                        // PERBAIKAN: Menggunakan warna tema untuk latar belakang modal
                         className="bg-background-secondary rounded-2xl shadow-xl w-full max-w-sm"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <main className="p-8 text-center">
-                            {/* ✅ PERBAIKAN: Menggunakan warna tema untuk teks */}
+                            {/* PERBAIKAN: Menggunakan warna tema untuk teks */}
                             <h2 className="text-xl font-bold text-text">{title}</h2>
                             <p className="text-text-secondary mt-2">{message}</p>
                         </main>
-                        {/* ✅ PERBAIKAN: Menggunakan warna tema untuk footer dan tombol */}
+                        {/* PERBAIKAN: Menggunakan warna tema untuk footer dan tombol */}
                         <footer className="p-4 grid grid-cols-2 gap-3 bg-background rounded-b-2xl">
                             <button
                                 onClick={onClose}

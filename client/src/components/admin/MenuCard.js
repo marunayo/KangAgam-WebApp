@@ -1,6 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+/**
+ * Komponen kartu (card) yang dapat diklik untuk menu navigasi.
+ * @param {React.Element} icon - Elemen ikon yang akan ditampilkan.
+ * @param {string} title - Judul kartu.
+ * @param {string} description - Deskripsi singkat di bawah judul.
+ * @param {string} to - Path tujuan (URL) saat kartu diklik.
+ */
 const MenuCard = ({ icon, title, description, to }) => {
     return (
         <Link 
@@ -9,12 +16,7 @@ const MenuCard = ({ icon, title, description, to }) => {
             className="bg-background-secondary p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-start gap-6 group"
         >
             <div className="flex-shrink-0 p-4 bg-gray-200 dark:bg-gray-700 rounded-lg mt-1 transition-colors group-hover:bg-gray-300 dark:group-hover:bg-gray-600">
-                {/* --- PERBAIKAN KUNCI ---
-                  Background yang kontras dengan ikon yang mudah terlihat
-                  Light mode: text-gray-800 pada bg-gray-200 (kontras tinggi)
-                  Dark mode: text-gray-100 pada bg-gray-700 (kontras tinggi)
-                  Hover: text-primary untuk kedua mode
-                */}
+                {/* Meng-clone elemen ikon untuk menambahkan kelas CSS baru */}
                 {React.cloneElement(icon, { 
                     className: `${icon.props.className || ''} h-8 w-8 text-gray-800 dark:text-gray-100 transition-colors group-hover:text-primary`
                 })}

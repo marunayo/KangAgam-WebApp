@@ -1,12 +1,18 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Komponen internal untuk ikon 'Close' (X)
 const CloseIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
 );
 
+/**
+ * Komponen modal untuk menampilkan pratinjau gambar (lightbox).
+ * @param {string} imageUrl - URL gambar yang akan ditampilkan.
+ * @param {function} onClose - Fungsi untuk menutup modal.
+ */
 const ImageModal = ({ imageUrl, onClose }) => {
     if (!imageUrl) return null;
 
@@ -17,7 +23,7 @@ const ImageModal = ({ imageUrl, onClose }) => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                onClick={onClose}
+                onClick={onClose} // Modal bisa ditutup dengan klik di luar gambar
             >
                 <button 
                     onClick={onClose} 
