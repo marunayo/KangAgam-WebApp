@@ -211,7 +211,7 @@ const TopicFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
                         <form onSubmit={handleSubmit}>
                             <header className="flex-shrink-0 flex items-center justify-between p-4 border-b border-background">
                                 <h2 className="text-xl font-bold text-text">{mode === 'edit' ? 'Edit Topik' : 'Tambah Topik'}</h2>
-                                <button typeM="button" onClick={onClose} className="p-1 rounded-full hover:bg-background"><CloseIcon /></button>
+                                <button type="button" onClick={onClose} className="p-1 rounded-full hover:bg-background"><CloseIcon /></button>
                             </header>
                             
                             {/* Main content (scrollable) */}

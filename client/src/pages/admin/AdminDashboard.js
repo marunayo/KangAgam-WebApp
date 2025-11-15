@@ -70,7 +70,7 @@ const AdminDashboard = () => {
     // Ikon diberi warna spesifik di sini menggunakan React.cloneElement
     const statsData = stats ? [
         { 
-            title: 'Total Pengunjung', 
+            title: 'Total Kunjungan', 
             value: stats.totalVisitors.toLocaleString('id-ID'), // Format angka
             // Clone ikon dan tambahkan className untuk warna (termasuk dark mode)
             icon: React.cloneElement(<PawIcon />, { className: 'h-8 w-8 text-blue-800 dark:text-blue-300' }),

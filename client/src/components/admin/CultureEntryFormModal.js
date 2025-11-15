@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CloseIcon = () => <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>;
@@ -18,6 +18,10 @@ const createNewEntrySection = () => ({
 
 const CultureEntryFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
     const [entries, setEntries] = useState([createNewEntrySection()]);
+    const entriesRef = useRef(entries);
+    useEffect(() => {
+        entriesRef.current = entries;
+    }, [entries]);
 
     useEffect(() => {
         if (isOpen) {
@@ -51,8 +55,8 @@ const CultureEntryFormModal = ({ isOpen, onClose, onSubmit, mode, initialData })
                 setEntries([createNewEntrySection()]);
             }
         } else {
-            // Cleanup blob URLs when modal closes
-            entries.forEach(entry => {
+            // Cleanup blob URLs when modal closes using ref to avoid adding 'entries' to deps
+            entriesRef.current.forEach(entry => {
                 if (entry.imagePreview && entry.imagePreview.startsWith('blob:')) {
                     URL.revokeObjectURL(entry.imagePreview);
                 }
