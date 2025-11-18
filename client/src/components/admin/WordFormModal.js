@@ -65,9 +65,9 @@ const WordFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
                     };
                 });
                 setEntries([{
-                    id: initialData._id, // ID entri utama dari database
-                    entryImage: null, // File gambar baru
-                    imagePreview: initialData.entryImagePath ? `http://localhost:5000${initialData.entryImagePath}` : null, // URL gambar lama
+                    id: initialData._id,
+                    entryImage: null,
+                    imagePreview: initialData.entryImagePath ? `${process.env.REACT_APP_API_URL}${initialData.entryImagePath}` : null,
                     vocabularies: initialVocabs,
                     errors: {},
                 }]);
@@ -155,10 +155,10 @@ const WordFormModal = ({ isOpen, onClose, onSubmit, mode, initialData }) => {
      * @param {string} audioUrl - URL relatif audio.
      */
     const handlePlayAudio = (audioUrl) => {
-        if (audioPlayer.current) audioPlayer.current.pause(); // Hentikan audio sebelumnya
-        const newAudio = new Audio(`http://localhost:5000${audioUrl}`); // Buat objek Audio baru
-        audioPlayer.current = newAudio; // Simpan di ref
-        newAudio.play(); // Putar audio
+        if (audioPlayer.current) audioPlayer.current.pause();
+        const newAudio = new Audio(`${process.env.REACT_APP_API_URL}${audioUrl}`);
+        audioPlayer.current = newAudio;
+        newAudio.play();
     };
 
     /**

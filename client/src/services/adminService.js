@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-// URL endpoint API untuk admin
-const API_URL = 'http://localhost:5000/api/admins';
+const API_URL = `${process.env.REACT_APP_API_URL}/api/admins` || 'http://localhost:5000/api/admins';
 
 /**
  * Mengirim permintaan login admin ke server.

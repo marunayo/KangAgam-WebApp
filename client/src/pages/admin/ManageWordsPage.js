@@ -448,9 +448,7 @@ const ManageWordsPage = () => {
                                                     >
                                                         Pratinjau
                                                     </Link>
-                                                    {/* Tombol lihat Gambar */}
-                                                    <button onClick={() => setImageModalUrl(`http://localhost:5000${entry.entryImagePath}`)} className="bg-gray-500/10 text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-500/20">Gambar</button>
-                                                    {/* Tombol putar Audio */}
+                                                    <button onClick={() => setImageModalUrl(`${process.env.REACT_APP_API_URL}${entry.entryImagePath}`)} className="bg-gray-500/10 text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-500/20">Gambar</button>
                                                     <button onClick={() => setAudioModalEntry(entry)} className="bg-gray-500/10 text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-500/20">Audio</button>
                                                     {/* Tombol Edit */}
                                                     <button onClick={() => setFormModalState({ isOpen: true, mode: 'edit', data: entry })} className="bg-yellow-500/10 text-yellow-600 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-yellow-500/20">Edit</button>
@@ -504,7 +502,7 @@ const ManageWordsPage = () => {
                 onClose={() => setDetailModalWord(null)}
                 onEdit={() => setFormModalState({ isOpen: true, mode: 'edit', data: detailModalWord })}
                 onDelete={() => setDeleteModalWord(detailModalWord)}
-                onViewImage={() => setImageModalUrl(`http://localhost:5000${detailModalWord.entryImagePath}`)}
+                onViewImage={() => setImageModalUrl(`${process.env.REACT_APP_API_URL}${detailModalWord.entryImagePath}`)}
                 onPlayAudio={() => setAudioModalEntry(detailModalWord)}
                 findVocab={findVocab} // Kirim helper function
             />

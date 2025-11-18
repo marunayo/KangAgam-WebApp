@@ -7,6 +7,7 @@ import Select from 'react-select'; // Komponen dropdown select
 // Path ke aset gambar logo
 const logo = '/assets/images/logo-kang-agam.png';
 const logoBalaiBahasa = '/assets/images/logo/tut-wuri-handayani.svg';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 /**
  * Komponen halaman Onboarding.
@@ -36,9 +37,7 @@ const OnboardingPage = () => {
     useEffect(() => {
         const fetchCities = async () => {
             try {
-                // Panggil API untuk mendapatkan daftar kota
-                const response = await axios.get('http://localhost:5000/api/locations/cities'); 
-                // Format data kota agar sesuai dengan format react-select
+                const response = await axios.get(`${API_URL}/api/locations/cities`);
                 const cityData = response.data.map(city => ({
                     value: city.name, // Nilai yang akan disimpan
                     label: city.name, // Teks yang ditampilkan
@@ -150,10 +149,7 @@ const OnboardingPage = () => {
                 learnerPhone: formData.nomorTelepon,
                 learnerCity: selectedCity.value, // Ambil value dari kota yang dipilih
             };
-            // Kirim data ke API backend untuk membuat pengguna baru
-            const response = await axios.post('http://localhost:5000/api/learners', learnerData);
-            
-            // Siapkan data user untuk disimpan di context (termasuk role)
+            const response = await axios.post(`${API_URL}/api/learners`, learnerData);
             const userData = { ...response.data.data, role: 'user' };
             // Panggil fungsi login dari AuthContext
             login(userData);

@@ -1,0 +1,60 @@
+# docker-compose.yml (VERSI FINAL UNTUK LOKAL VM)
+
+services:
+  service:
+    build: ./service
+    container_name: service-api
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./service/.env
+    volumes:
+      # Memasang volume 'uploads' ke direktori /app/public
+      - ./uploads:/app/public
+    
+    # PERBAIKAN UTAMA: Menjalankan container sebagai user 'root'
+    # Ini akan memberikan aplikasi izin penuh untuk menulis file di dalam volume.
+    user: root
+    
+    environment:
+      # Pastikan nama service 'database' cocok dengan yang di bawah
+      - ATLAS_URI=mongodb://database:27017/KangAgam-DB?replicaSet=rs0
+    depends_on:
+      database:
+        condition: service_healthy
+
+  client:
+    build: 
+      context: ./client
+      args:
+        - REACT_APP_API_URL=${REACT_APP_API_URL}
+    container_name: client-web
+    ports:
+      - "3000:80"
+    depends_on:
+      - service
+    env_file:
+      - ./client/.env
+
+  database:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      # Menggunakan volume untuk menyimpan data database dengan aman
+      - mongodb_data:/data/db
+      - ./seed:/docker-entrypoint-initdb.d
+      - ./init-mongo.sh:/usr/local/bin/init-mongo.sh
+    command: ["bash", "/usr/local/bin/init-mongo.sh"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "quit(db.isMaster().ismaster ? 0 : 1)"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+# Mendefinisikan volume lokal yang akan dibuat dan dikelola oleh Docker
+volumes:
+  uploads:
+  mongodb_data:

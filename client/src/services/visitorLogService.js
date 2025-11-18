@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-// URL endpoint API untuk log pengunjung
-const API_URL = 'http://localhost:5000/api/visitor-logs';
+const API_URL = `${process.env.REACT_APP_API_URL}/api/visitor-logs`;
 
 /**
  * Mengirimkan log kunjungan ke server.

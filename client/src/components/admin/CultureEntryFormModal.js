@@ -37,7 +37,7 @@ const CultureEntryFormModal = ({ isOpen, onClose, onSubmit, mode, initialData })
                 let imagePreview = null;
                 if (initialData.imagePath) {
                     const correctedPath = initialData.imagePath.replace(/\\/g, '/').replace('public/', '');
-                    imagePreview = `http://localhost:5000/${correctedPath}`;
+                    imagePreview = `${process.env.REACT_APP_API_URL}/${correctedPath}`;
                 }
 
                 setEntries([{

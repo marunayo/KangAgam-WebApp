@@ -57,7 +57,7 @@ const ManageCultureEntryDetailModal = ({ entry, onClose, onEdit, onDelete }) => 
                             <div className="bg-background p-3 rounded-lg">
                                 <p className="text-xs text-text-secondary mb-2">Gambar</p>
                                 <img 
-                                    src={`http://localhost:5000/${entry.imagePath.replace(/\\/g, '/').replace('public/', '')}`}
+                                    src={`${process.env.REACT_APP_API_URL}/${entry.imagePath.replace(/\\/g, '/').replace('public/', '')}`}
                                     alt={getLocalizedText(entry.title)}
                                     className="w-full h-32 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
                                 />

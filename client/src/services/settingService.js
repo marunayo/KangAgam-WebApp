@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-// URL endpoint API untuk pengaturan
-const API_URL = 'http://localhost:5000/api/settings';
+const API_URL = `${process.env.REACT_APP_API_URL}/api/settings`;
 
 /**
  * Mengambil pengaturan aplikasi dari server.

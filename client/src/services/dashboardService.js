@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-// URL endpoint API untuk dashboard
-const API_URL = 'http://localhost:5000/api/dashboard';
+const API_URL = `${process.env.REACT_APP_API_URL}/api/dashboard`;
 
 /**
  * Mengambil data statistik dari backend.

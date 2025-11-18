@@ -26,9 +26,7 @@ const UserLayout = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                // Panggil API untuk mendapatkan statistik
-                const response = await axios.get('http://localhost:5000/api/visitor-logs/stats');
-                // Update state dengan data dari API, default ke 0 jika tidak ada
+                const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/visitor-logs/stats`);
                 setTotalUniqueVisitors(response.data.totalUniqueVisitors || 0);
             } catch (error) {
                 console.error('Gagal mengambil statistik pengunjung:', error);
