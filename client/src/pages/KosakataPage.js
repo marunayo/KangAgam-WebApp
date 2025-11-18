@@ -17,6 +17,28 @@ import { getTopicById } from '../services/topicService';
 import NotFoundPage from '../components/NotFoundPage';
 
 // ====================================================================
+// IMAGE URL HELPER FUNCTION
+// ====================================================================
+const getImageUrl = (imagePath) => {
+    if (!imagePath) return '';
+    
+    // If it's already a full URL, return as is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+    }
+    
+    // If it starts with /assets, it's a local asset
+    if (imagePath.startsWith('/assets')) {
+        return imagePath;
+    }
+    
+    // Otherwise, it's from the backend
+    const cleanPath = imagePath.replace(/\\/g, '/');
+    const baseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+    return `${baseUrl}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+};
+
+// ====================================================================
 // SMART SORTING FUNCTIONS (Imported from ManageWordsPage)
 // ====================================================================
 
@@ -481,7 +503,8 @@ const KosakataPage = () => {
         const audioUrl = findVocab(entry, i18n.language)?.audioUrl;
         if (!audioUrl) return;
 
-        const audio = new Audio(`${process.env.REACT_APP_API_URL}${audioUrl.replace(/\\/g, '/')}`);
+        // ✅ FIXED: Use getImageUrl helper for audio URL
+        const audio = new Audio(getImageUrl(audioUrl));
         audioRef.current = audio;
         setIsAudioPlaying(true);
 
@@ -553,7 +576,7 @@ const KosakataPage = () => {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    src={`${process.env.REACT_APP_API_URL}${activeEntry.entryImagePath.replace(/\\/g, '/')}`} 
+                                    src={getImageUrl(activeEntry.entryImagePath)}
                                     alt="Gambar kosakata" 
                                     className="w-full h-full object-cover" 
                                 />
@@ -587,10 +610,10 @@ const KosakataPage = () => {
     return (
         <>
             {/* ✅ TAMBAHAN: Modal untuk opening audio */}
-            <AudioProgressModal isOpen={isOpening} message="Selamat datang!" />
+            <AudioProgressModal isOpen={isOpening} message="Selamat datang!" imageUrl={"/assets/images/char/char-smile.png"} />
             
             {/* ✅ PERBAIKAN: Modal untuk closing audio */}
-            <AudioProgressModal isOpen={isClosing} message="Sampai ketemu lagi!" />
+            <AudioProgressModal isOpen={isClosing} message="Sampai ketemu lagi!" imageUrl={"/assets/images/char/char-smile-wave.png"} />
             
             <motion.div
                 initial="initial"
@@ -715,7 +738,7 @@ const KosakataPage = () => {
                                                     <motion.div key={entry._id} variants={cardVariants}>
                                                         <KosakataCard 
                                                             content={currentVocab.vocab}
-                                                            imageUrl={`${process.env.REACT_APP_API_URL}${entry.entryImagePath.replace(/\\/g, '/')}`}
+                                                            imageUrl={getImageUrl(entry.entryImagePath)}
                                                             isActive={activeEntry && activeEntry._id === entry._id}
                                                             isPlaying={isAudioPlaying && activeEntry?._id === entry._id}
                                                             isAnyAudioPlaying={isAudioPlaying}

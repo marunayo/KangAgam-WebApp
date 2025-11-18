@@ -16,6 +16,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
         role: 'admin',
     });
     const [error, setError] = useState('');
+    const [passwordTouched, setPasswordTouched] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -23,7 +24,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                 setFormData({
                     adminName: initialData.adminName || '',
                     adminEmail: initialData.adminEmail || '',
-                    role: initialData.role || 'admin',
+                    role: initialData.role || 'admin', // FIXED: Preserve existing role
                     adminPassword: '',
                     confirmPassword: '',
                 });
@@ -33,24 +34,30 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                     adminEmail: '',
                     adminPassword: '',
                     confirmPassword: '',
-                    role: 'admin',
+                    role: 'admin', // Default role for new admins
                 });
             }
             setError('');
+            setPasswordTouched(false);
         }
     }, [isOpen, mode, initialData]);
 
     const handleChange = (e) => {
-        setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+        const { name, value } = e.target;
+        
+        if (name === 'adminPassword' || name === 'confirmPassword') {
+            setPasswordTouched(true);
+        }
+        
+        setFormData((prev) => ({ ...prev, [name]: value }));
         setError('');
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validasi client-side
-        if (!formData.adminName || !formData.adminEmail || !formData.role) {
-            setError('Nama, email, dan role wajib diisi.');
+        if (!formData.adminName || !formData.adminEmail) {
+            setError('Nama dan email wajib diisi.');
             return;
         }
 
@@ -65,32 +72,37 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
             }
         }
 
-        if (mode === 'edit' && formData.adminPassword && formData.adminPassword !== formData.confirmPassword) {
-            setError('Kata sandi baru dan konfirmasi kata sandi tidak cocok.');
-            return;
+        if (mode === 'edit' && passwordTouched) {
+            if (!formData.adminPassword || !formData.confirmPassword) {
+                setError('Jika ingin mengubah password, kedua field password harus diisi.');
+                return;
+            }
+            if (formData.adminPassword !== formData.confirmPassword) {
+                setError('Kata sandi baru dan konfirmasi kata sandi tidak cocok.');
+                return;
+            }
         }
 
         try {
             const dataToSubmit = {
                 adminName: formData.adminName,
                 adminEmail: formData.adminEmail,
-                role: formData.role,
+                role: formData.role, // FIXED: Send the actual role from formData
             };
 
             if (mode === 'add') {
                 dataToSubmit.adminPassword = formData.adminPassword;
-                await onSubmit(dataToSubmit); // Panggil createAdmin
+                await onSubmit(dataToSubmit);
             } else {
-                // Jika ada perubahan password, panggil endpoint changePassword
-                if (formData.adminPassword && formData.confirmPassword) {
+                if (passwordTouched && formData.adminPassword && formData.confirmPassword) {
                     await onSubmit({
                         ...dataToSubmit,
                         newPassword: formData.adminPassword,
                         confirmPassword: formData.confirmPassword,
-                        isPasswordChange: true, // Tanda bahwa ini update password
+                        isPasswordChange: true,
                     });
                 } else {
-                    await onSubmit(dataToSubmit); // Panggil updateAdmin
+                    await onSubmit(dataToSubmit);
                 }
             }
         } catch (err) {
@@ -153,22 +165,6 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                                         required
                                     />
                                 </div>
-                                <div>
-                                    <label htmlFor="role" className="block text-sm font-medium text-gray-600 mb-1">
-                                        Peran
-                                    </label>
-                                    <select
-                                        id="role"
-                                        name="role"
-                                        value={formData.role}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white"
-                                        required
-                                    >
-                                        <option value="admin">Admin</option>
-                                        <option value="superadmin">Superadmin</option>
-                                    </select>
-                                </div>
                                 <div className="space-y-4">
                                     <div>
                                         <label
@@ -183,8 +179,11 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                                             name="adminPassword"
                                             value={formData.adminPassword}
                                             onChange={handleChange}
+                                            onFocus={() => setPasswordTouched(true)}
                                             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg"
                                             required={mode === 'add'}
+                                            placeholder={mode === 'edit' ? 'Kosongkan jika tidak ingin mengubah password' : ''}
+                                            autoComplete="new-password"
                                         />
                                     </div>
                                     <div>
@@ -192,7 +191,7 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                                             htmlFor="confirmPassword"
                                             className="block text-sm font-medium text-gray-600 mb-1"
                                         >
-                                            Konfirmasi Kata Sandi
+                                            Konfirmasi Kata Sandi {mode === 'edit' ? '(Opsional)' : ''}
                                         </label>
                                         <input
                                             type="password"
@@ -200,11 +199,21 @@ const AdminFormModal = ({ isOpen, onClose, onSubmit, isSubmitting, mode, initial
                                             name="confirmPassword"
                                             value={formData.confirmPassword}
                                             onChange={handleChange}
+                                            onFocus={() => setPasswordTouched(true)}
                                             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg"
                                             required={mode === 'add'}
+                                            placeholder={mode === 'edit' ? 'Kosongkan jika tidak ingin mengubah password' : ''}
+                                            autoComplete="new-password"
                                         />
                                     </div>
                                 </div>
+                                {mode === 'edit' && (
+                                    <div className="bg-blue-50 p-3 rounded-lg">
+                                        <p className="text-sm text-blue-700">
+                                            <strong>Catatan:</strong> Kosongkan field password jika Anda hanya ingin mengubah nama atau email. Password hanya akan diubah jika Anda mengisi kedua field password.
+                                        </p>
+                                    </div>
+                                )}
                             </main>
                             <footer className="p-6 bg-gray-50 rounded-b-2xl">
                                 <button

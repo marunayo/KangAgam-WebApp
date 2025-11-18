@@ -21,21 +21,23 @@ const ExclamationIcon = () => (
     </svg> 
 );
 
-const QuizFeedbackPopup = ({ isOpen, type }) => {
+const QuizFeedbackPopup = ({ isOpen, type, imageUrl }) => {
     const content = {
         correct: { 
             icon: <CheckIcon />, 
             text: "Hebat!", 
             bgColor: "bg-green-100 dark:bg-green-900/30",
             borderColor: "border-green-300 dark:border-green-700",
-            textColor: "text-green-800 dark:text-green-100"
+            textColor: "text-green-800 dark:text-green-100",
+            defaultImage: "https://via.placeholder.com/200x200/22c55e/ffffff?text=✓"
         },
         incorrect: { 
             icon: <ExclamationIcon />, 
             text: "Coba lagi, ya!", 
             bgColor: "bg-yellow-100 dark:bg-yellow-900/30",
             borderColor: "border-yellow-300 dark:border-yellow-700", 
-            textColor: "text-yellow-800 dark:text-yellow-100"
+            textColor: "text-yellow-800 dark:text-yellow-100",
+            defaultImage: "https://via.placeholder.com/200x200/eab308/ffffff?text=?"
         },
     };
     const selectedContent = content[type] || content.correct;
@@ -47,7 +49,7 @@ const QuizFeedbackPopup = ({ isOpen, type }) => {
                     initial={{ opacity: 0 }} 
                     animate={{ opacity: 1 }} 
                     exit={{ opacity: 0 }} 
-                    className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center"
+                    className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4"
                 >
                     <motion.div 
                         initial={{ scale: 0.5, opacity: 0 }} 
@@ -56,7 +58,7 @@ const QuizFeedbackPopup = ({ isOpen, type }) => {
                         transition={{ type: 'spring', stiffness: 300, damping: 25 }} 
                         className={`
                             p-8 rounded-2xl flex flex-col items-center gap-4 
-                            border-2 backdrop-blur-sm shadow-2xl
+                            border-2 backdrop-blur-sm shadow-2xl max-w-sm w-full
                             ${selectedContent.bgColor} 
                             ${selectedContent.borderColor}
                         `}
@@ -67,6 +69,15 @@ const QuizFeedbackPopup = ({ isOpen, type }) => {
                         <p className={`text-2xl font-bold ${selectedContent.textColor}`}>
                             {selectedContent.text}
                         </p>
+                        
+                        {/* Image Section */}
+                        <div className="w-full flex justify-center mt-2">
+                            <img 
+                                src={imageUrl || selectedContent.defaultImage}
+                                alt={type === 'correct' ? 'Jawaban Benar' : 'Jawaban Salah'}
+                                className="w-48 h-48 object-cover rounded-xl"
+                            />
+                        </div>
                     </motion.div>
                 </motion.div>
             )}
@@ -98,7 +109,7 @@ const QuizPage = () => {
     const [wrongAttempts, setWrongAttempts] = useState(0);
     const [feedback, setFeedback] = useState({ show: false, correct: false, selectedId: null });
     const [quizState, setQuizState] = useState('loading');
-    const [feedbackPopup, setFeedbackPopup] = useState({ isOpen: false, type: null });
+    const [feedbackPopup, setFeedbackPopup] = useState({ isOpen: false, type: null, imageUrl: null });
     const [isAnswering, setIsAnswering] = useState(false);
     
     // ✅ Simplified error state - route guard handles invalid IDs
@@ -190,21 +201,31 @@ const QuizPage = () => {
 
         if (isCorrect) {
             setScore(s => s + 1);
-            setFeedbackPopup({ isOpen: true, type: 'correct' });
+            // Show correct answer with custom image
+            setFeedbackPopup({ 
+                isOpen: true, 
+                type: 'correct',
+                imageUrl: '/assets/images/char/char-happy.png'
+            });
             await playCorrectSound();
             handleNextQuestion();
         } else {
             const newWrongAttempts = wrongAttempts + 1;
             setWrongAttempts(newWrongAttempts);
             
-            setFeedbackPopup({ isOpen: true, type: 'incorrect' });
+            // Show incorrect feedback with custom image
+            setFeedbackPopup({ 
+                isOpen: true, 
+                type: 'incorrect',
+                imageUrl: '/assets/images/char/char-sad.png'
+            });
             await playIncorrectSound();
             
             if (newWrongAttempts >= 3) {
                 setWrongCount(w => w + 1);
                 handleNextQuestion();
             } else {
-                setFeedbackPopup({ isOpen: false, type: null });
+                setFeedbackPopup({ isOpen: false, type: null, imageUrl: null });
                 setFeedback({ show: false, correct: false, selectedId: null });
             }
         }
@@ -214,7 +235,7 @@ const QuizPage = () => {
 
     const handleNextQuestion = () => {
         setFeedback({ show: false, correct: false, selectedId: null });
-        setFeedbackPopup({ isOpen: false, type: null });
+        setFeedbackPopup({ isOpen: false, type: null, imageUrl: null });
         setWrongAttempts(0);
         if (currentQuestionIndex + 1 >= questions.length) {
             setQuizState('finished');
@@ -336,7 +357,7 @@ const QuizPage = () => {
                                 </h3>
                                 
                                 <ul className="list-disc text-text-secondary mb-6 pl-6">
-                                    <li>Klik icon volume untuk mendengarkan kosakata</li>
+                                    <li>Klik ikon volume untuk mendengarkan kosakata</li>
                                     <li>Jika salah 3 kali di pertanyaan yang sama, akan berganti ke pertanyaan selanjutnya</li>
                                 </ul>
                                 
@@ -415,7 +436,7 @@ const QuizPage = () => {
                                 variants={modalItemVariants} 
                                 className="text-xl text-text-secondary"
                             >
-                                Skor Akhir Anda:
+                                Skor akhir kamu adalah:
                             </motion.p>
                             <motion.p 
                                 variants={modalItemVariants} 
@@ -446,7 +467,11 @@ const QuizPage = () => {
             </AnimatePresence>
             
             {/* Feedback Popup */}
-            <QuizFeedbackPopup isOpen={feedbackPopup.isOpen} type={feedbackPopup.type} />
+            <QuizFeedbackPopup 
+                isOpen={feedbackPopup.isOpen} 
+                type={feedbackPopup.type}
+                imageUrl={feedbackPopup.imageUrl}
+            />
         </motion.div>
     );
 };

@@ -120,10 +120,10 @@ const ManageLearnersPage = () => {
                     <thead className="bg-slate-50 dark:bg-gray-700/50">
                         {/* ✅ 2. Beri tinggi tetap pada header tabel */}
                         <tr style={{ height: '60px' }}>
-                            <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[5%]">#</th>
+                            <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[5%]">No.</th>
                             <th className="p-3 px-6 font-bold text-text-secondary">Nama Lengkap</th>
                             <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[25%]">Domisili</th>
-                            <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[20%]">No. Telepon</th>
+                            <th className="hidden sm:table-cell p-3 px-6 font-bold text-text-secondary w-[20%]">Nomor Telepon</th>
                         </tr>
                     </thead>
                     <tbody>

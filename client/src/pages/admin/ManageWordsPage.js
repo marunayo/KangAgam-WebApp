@@ -1,4 +1,4 @@
-// ManageWordsPage.js (Complete with Intelligent Number Sorting)
+// ManageWordsPage.js (Complete with Intelligent Number Sorting and Preview Button)
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Pagination from '../../components/ui/Pagination';
@@ -440,6 +440,14 @@ const ManageWordsPage = () => {
                                             <td className="hidden sm:table-cell p-3 px-6 text-text-secondary truncate">{findVocab(entry, 'en')}</td>
                                             <td className="p-3 px-6 text-right">
                                                 <div className="hidden sm:flex justify-end items-center gap-2">
+                                                    <Link 
+                                                        to={`/topik/${topicId}`} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer" 
+                                                        className="bg-gray-500/10 text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-500/20"
+                                                    >
+                                                        Pratinjau
+                                                    </Link>
                                                     <button onClick={() => setImageModalUrl(`${process.env.REACT_APP_API_URL}${entry.entryImagePath}`)} className="bg-gray-500/10 text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-500/20">Gambar</button>
                                                     <button onClick={() => setAudioModalEntry(entry)} className="bg-gray-500/10 text-text-secondary text-xs font-bold px-3 py-1.5 rounded-md hover:bg-gray-500/20">Audio</button>
                                                     <button onClick={() => setFormModalState({ isOpen: true, mode: 'edit', data: entry })} className="bg-yellow-500/10 text-yellow-600 text-xs font-bold px-3 py-1.5 rounded-md hover:bg-yellow-500/20">Edit</button>
