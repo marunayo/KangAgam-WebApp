@@ -37,7 +37,6 @@ KangAgam WebApp adalah platform Kamus Daring Audio Bergambar Tiga Bahasa (Indone
 - MongoDB & Mongoose: Database NoSQL dan ODM.
 - JWT (JSON Web Token): Keamanan otentikasi.
 - Multer: Middleware untuk upload file (gambar & audio).
-- Nodemailer: Layanan pengiriman email (untuk reset password).
 - Swagger UI: Dokumentasi API otomatis.
 
 ## 📂 Struktur Proyek
@@ -62,13 +61,24 @@ KangAgam-WebApp/
     └── server.js       # Entry point
 
 ```
-## 🚀 Cara Menjalankan (Instalasi)
+
+## 🚀 Cara Menjalankan (Instalasi Dengan Docker)
+
+### Buat file .env di dalam folder service dan client
+(Isi variabel environment sesuai konfigurasi Anda, lihat bagian Konfigurasi di bawah)
+
+### Build dan Run Docker Compose
+```bash
+docker compose up --build
+```
+
+## 🚀 Cara Menjalankan (Instalasi Tanpa Docker)
 
 Pastikan Anda sudah menginstall Node.js dan MongoDB di komputer Anda.
 
 1. Clone Repository
 ```bash
-git clone [https://github.com/username-anda/KangAgam-WebApp.git](https://github.com/username-anda/KangAgam-WebApp.git)
+git clone [https://github.com/marunayo/KangAgam-WebApp.git](https://github.com/marunayo/KangAgam-WebApp.git)
 cd KangAgam-WebApp
 ```
 
@@ -79,10 +89,9 @@ npm install
 ```
 
 ### Buat file .env di dalam folder service
-```bash
-cp .env.example .env
-```
-### (Isi variabel lingkungan sesuai konfigurasi Anda, lihat bagian Konfigurasi di bawah)
+(Isi variabel environment sesuai konfigurasi Anda, lihat bagian Konfigurasi di bawah)
+
+### Mulai Server
 ```bash
 npm start
 ```
@@ -96,8 +105,10 @@ npm install
 ```
 
 ### Buat file .env di dalam folder client
+(Isi variabel environment sesuai konfigurasi Anda, lihat bagian Konfigurasi di bawah)
+
+### Mulai Client
 ```bash
-cp .env.example .env
 npm start
 ```
 ### Aplikasi akan berjalan di http://localhost:3000
@@ -108,10 +119,10 @@ npm start
 Buat file .env di folder service dan isi dengan:
 
 PORT=5000
-ATLAS_URI=mongodb://localhost:27017/kangagam_db
+ATLAS_URI=mongodb://localhost:27017/KangAgam-DB?replicaSet=rs0  
 JWT_SECRET=rahasia_kunci_jwt_anda_yang_sangat_panjang
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
+EMAIL_HOST=sandbox.smtp.mailtrap.io
+EMAIL_PORT=2525
 EMAIL_USERNAME=email_anda@gmail.com
 EMAIL_PASSWORD=app_password_anda
 ```
@@ -124,3 +135,4 @@ REACT_APP_API_URL=http://localhost:5000
 
 
 Dibuat dengan ❤️ oleh Tim Pengembang Kang Agam.
+
